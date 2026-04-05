@@ -18,9 +18,7 @@ const GalleryIcon = () => (
 const InfoIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
 );
-const LocateIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
-);
+
 const ResetIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
 );
@@ -41,6 +39,9 @@ export default function App() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('3D');
   const [showStatus, setShowStatus] = useState(true);
+  const [showCategories, setShowCategories] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
+  const [compassRotation, setCompassRotation] = useState(0);
 
   const filteredPlots = allPlots;
 
@@ -62,6 +63,12 @@ export default function App() {
     setShowSearch(false);
   }, []);
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchResults.length > 0) {
+      handleFocusPlot(searchResults[0]);
+    }
+  };
+
   return (
     <div className="viewer-shell">
       {/* ── STEP 5: CANVAS RESPONSIVENESS ── */}
@@ -78,116 +85,147 @@ export default function App() {
             onSelectPlot={handleFocusPlot}
             filteredPlots={filteredPlots}
             showStatus={showStatus}
+            showCategories={showCategories}
+            onCameraChange={(rot) => setCompassRotation(rot)}
           />
         </Canvas>
       </div>
 
-      {/* ── TOP BAR ── */}
+      {/* 1. TOP BAR */}
       <div className="top-bar">
         <div className="logo-badge">
           <div className="title">PREETHI ESTATES</div>
           <div className="subtitle">Premium Plotting Collection</div>
         </div>
-        <button className="pill-btn" style={{ padding: '10px 18px', background: 'rgba(255,255,255,0.1)' }}>
+        <button className="btn-share" onClick={() => {}}>
           <ShareIcon /> SHARE
         </button>
       </div>
 
-      {/* ── SIDE TOGGLES (Bottom Left) ── */}
-      <div className="side-toggles">
-        <div className="toggle-item" onClick={() => setShowStatus(!showStatus)}>
-          <span>STATUS</span>
-          <div style={{ width: 14, height: 14, borderRadius: '50%', background: showStatus ? 'var(--green)' : 'var(--text-muted)' }} />
+      {/* 2. COMPASS */}
+      <div className="compass-wrap">
+        <div className="compass-circle" style={{ transform: `rotate(${compassRotation}rad)` }}>
+          <div style={{ transform: 'translateY(-2px)' }}>N</div>
+          <div style={{ position: 'absolute', width: 2, height: 12, background: '#ef4444', top: 2, borderRadius: 1 }} />
         </div>
       </div>
 
-      {/* ── CAMERA CONTROLS (Bottom Right) ── */}
-      <div className="camera-controls">
-        <button className={`camera-btn ${viewMode === '2D' ? 'active' : ''}`} onClick={() => setViewMode('2D')}>2D</button>
-        <button className={`camera-btn ${viewMode === '3D' ? 'active' : ''}`} onClick={() => setViewMode('3D')}>3D</button>
-        <button className={`camera-btn ${viewMode === 'SIDE' ? 'active' : ''}`} onClick={() => setViewMode('SIDE')}>SD</button>
-        <button className="camera-btn" onClick={() => { setSelectedPlot(null); setViewMode('3D'); }}>
-          <ResetIcon />
-        </button>
+      {/* 3. VIEW TOGGLE (Vertical) */}
+      <div className="view-toggle">
+        <button className={`view-btn ${viewMode === '2D' ? 'active' : ''}`} onClick={() => setViewMode('2D')}>2D</button>
+        <button className={`view-btn ${viewMode === '3D' ? 'active' : ''}`} onClick={() => setViewMode('3D')}>3D</button>
+        <button className={`view-btn ${viewMode === 'SIDE' ? 'active' : ''}`} onClick={() => setViewMode('SIDE')}>SD</button>
       </div>
 
-      {/* ── FLOATING SEARCH BAR (Bottom Center) ── */}
-      <div className="search-container">
-        <div className="search-wrap">
-          <SearchIcon />
-          <input
-            className="search-input"
-            placeholder="Search Plot Number..."
-            value={search}
-            onFocus={() => setShowSearch(true)}
-            onChange={e => { setSearch(e.target.value); setShowSearch(true); }}
-            onBlur={() => setTimeout(() => setShowSearch(false), 200)}
-          />
-          {showSearch && searchResults.length > 0 && (
-            <div className="search-results glass-panel" style={{ bottom: '100%', top: 'auto', marginBottom: 16 }}>
-              {searchResults.map(p => (
-                <div key={p.id} className="search-item" onMouseDown={() => handleFocusPlot(p)}>
-                  <span>
-                    <span className="plot-num">#{p.number}</span>
-                  </span>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{fmt(p.price)}</span>
-                </div>
-              ))}
-            </div>
-          )}
+      {/* RESET CAMERA */}
+      <button className="btn-reset-cam" onClick={() => { setSelectedPlot(null); setViewMode('3D'); }}>
+        <ResetIcon />
+      </button>
+
+      {/* 3. PLOT INFO PANEL */}
+      {/* 4. TOGGLES (Floating Right) */}
+      <div className="toggles-group">
+        <div className={`toggle-item ${showCategories ? 'active' : ''}`} onClick={() => { setShowCategories(!showCategories); if (!showCategories) setShowStatus(false); }}>
+           <span>Categories</span>
+           <div className="switch-track"><div className="switch-thumb" /></div>
+        </div>
+        <div className={`toggle-item ${showStatus ? 'active' : ''}`} onClick={() => { setShowStatus(!showStatus); if (!showStatus) setShowCategories(false); }}>
+           <span>Status</span>
+           <div className="switch-track"><div className="switch-thumb" /></div>
         </div>
       </div>
 
-      {/* ── INFO PANEL ── */}
-      <div className={`info-panel glass-panel ${selectedPlot ? 'open' : ''}`} 
-           style={{ pointerEvents: selectedPlot ? 'auto' : 'none', right: 24, top: 100 }}>
+      <div className={`info-panel ${selectedPlot ? 'open' : ''}`}>
         {selectedPlot && (
           <>
             <div className="info-header">
               <h3>Plot #{selectedPlot.number}</h3>
               <button className="info-close" onClick={() => setSelectedPlot(null)}><XIcon /></button>
             </div>
-            <div className="info-body">
-              <div className={`info-status-badge ${selectedPlot.status}`}>
-                <span style={{
-                  width: 6, height: 6, borderRadius: '50%',
-                  background: selectedPlot.status === 'available' ? 'var(--green)' :
-                    selectedPlot.status === 'sold' ? 'var(--red)' : 'var(--yellow)'
-                }} />
-                {selectedPlot.status}
-              </div>
+            
+            <div className={`status-badge ${selectedPlot.status}`}>
+              <span className="status-dot" />
+              {selectedPlot.status.toUpperCase()}
+            </div>
 
-              <div className="info-grid">
-                <div className="info-cell">
-                  <div className="label">Area</div>
-                  <div className="value">{selectedPlot.area} <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>sq ft</span></div>
-                </div>
-                <div className="info-cell">
-                  <div className="label">Price</div>
-                  <div className="value">{fmt(selectedPlot.price)}</div>
-                </div>
+            <div className="info-grid">
+              <div className="info-cell">
+                <div className="label">AREA</div>
+                <div className="value">{selectedPlot.area} <small>sq ft</small></div>
               </div>
+              <div className="info-cell">
+                <div className="label">PRICE</div>
+                <div className="value">{fmt(selectedPlot.price)}</div>
+              </div>
+            </div>
 
-              <div className="info-actions">
-                <button className="info-btn primary">BOOK NOW</button>
-                <button className="info-btn">CONTACT</button>
-              </div>
+            <button className="btn-book" disabled={selectedPlot.status === 'sold'}>BOOK NOW</button>
+            
+            <div className="panel-meta" style={{ marginTop: '1.5rem' }}>
+              <div className="meta-item"><span>Facing</span><span>East</span></div>
+              <div className="meta-item"><span>Dimensions</span><span>30×40 ft</span></div>
+              <div className="meta-item"><span>Road Width</span><span>12M Road</span></div>
             </div>
           </>
         )}
       </div>
 
-      {/* ── MAIN NAVIGATION ── */}
-      <div className="bottom-nav">
-        <button className="pill-btn" onClick={() => setGalleryOpen(true)}>
-          <GalleryIcon /> GALLERY
-        </button>
-        <button className="pill-btn" onClick={() => {}}>
-          <InfoIcon /> INFO
-        </button>
-        <button className="pill-btn" onClick={() => setSelectedPlot(allPlots[0])}>
-          <LocateIcon /> LOCATE
-        </button>
+      {/* 4. BOTTOM CONTROLS */}
+      <div className="bottom-controls">
+        <div className="bottom-row-1">
+          <div className="status-legend" onMouseLeave={() => setShowLegend(false)}>
+            <button className="legend-toggle" onClick={() => setShowLegend(!showLegend)}>
+              STATUS <div className="legend-indicator" style={{ background: showStatus ? 'var(--color-available)' : 'var(--color-text-faint)' }} />
+            </button>
+            {showLegend && (
+              <div className="legend-popup">
+                <div className="legend-item"><span className="legend-color" style={{ background: 'var(--color-available)' }} /> Available</div>
+                <div className="legend-item"><span className="legend-color" style={{ background: 'var(--color-sold)' }} /> Sold</div>
+                <div className="legend-item"><span className="legend-color" style={{ background: 'var(--color-corner)' }} /> Corner Plot</div>
+                <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 8, paddingTop: 8 }}>
+                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                     <input type="checkbox" checked={showStatus} onChange={e => setShowStatus(e.target.checked)} />
+                     <span style={{ fontSize: 11 }}>SHOW COLORS</span>
+                   </label>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="search-wrapper">
+            <SearchIcon />
+            <input
+              className="search-input"
+              placeholder="Search Plot Number..."
+              value={search}
+              onFocus={() => setShowSearch(true)}
+              onChange={e => { setSearch(e.target.value); setShowSearch(true); }}
+              onBlur={() => setTimeout(() => setShowSearch(false), 200)}
+              onKeyDown={handleSearchKeyDown}
+            />
+            {showSearch && searchResults.length > 0 && (
+              <div className="search-results">
+                {searchResults.map(p => (
+                  <div key={p.id} className="search-result-item" onMouseDown={() => handleFocusPlot(p)}>
+                    <span>Plot #{p.number}</span>
+                    <span style={{ color: `var(--color-${p.status === 'sold' ? 'sold' : 'available'})`, fontSize: '11px' }}>
+                      {p.status.toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bottom-tabs">
+          <button className="tab-btn" onClick={() => setGalleryOpen(true)}>
+            <GalleryIcon /> <span>GALLERY</span>
+          </button>
+          <button className="tab-btn" onClick={() => {}}>
+            <InfoIcon /> <span>INFO</span>
+          </button>
+        </div>
       </div>
 
       {/* ── GALLERY MODAL ── */}

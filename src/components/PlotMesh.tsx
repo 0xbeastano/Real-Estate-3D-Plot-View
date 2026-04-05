@@ -10,27 +10,40 @@ interface PlotMeshProps {
   isSelected: boolean;
   onSelect: (plot: PlotData) => void;
   showStatus: boolean;
+  showCategories: boolean;
 }
 
 const statusColors: Record<string, string> = {
-  available: '#1bb16b', // Emerald Green
-  sold: '#eb5757',      // Coral Red
-  reserved: '#f2c94c',  // Golden Yellow
+  available: '#22c55e', // Master Prompt Green
+  sold: '#ef4444',      // Master Prompt Red
+  corner: '#eab308',    // Master Prompt Yellow/Gold
 };
 
-const neutralColor = '#2a2a2a';
-const selectedColor = '#2d9cdb'; // Sky Blue
+const categoryColors: Record<string, string> = {
+  Commercial: '#3b82f6', // Bright Blue
+  Residential: '#22c55e', // Master Green
+  Premium: '#a855f7',    // Vivid Purple
+};
 
-export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, showStatus }) => {
+const neutralColor = '#1e1e1e';
+const selectedColor = '#38bdf8'; // Master Prompt Sky Blue
+
+export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, showStatus, showCategories }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
 
-  const baseColor = useMemo(() => new THREE.Color(showStatus ? (statusColors[data.status] || '#555555') : neutralColor), [data.status, showStatus]);
-  const highlightColor = useMemo(() => new THREE.Color(selectedColor), []);
-  const hoveredColor = useMemo(() => new THREE.Color('#444444'), []);
+  const baseColor = useMemo(() => {
+    if (showCategories) return new THREE.Color(categoryColors[data.category] || neutralColor);
+    if (showStatus) return new THREE.Color(statusColors[data.status] || neutralColor);
+    return new THREE.Color(neutralColor);
+  }, [data.status, data.category, showStatus, showCategories]);
 
-  const elevation = isSelected ? 0.6 : hovered ? 0.3 : 0.05;
+  const highlightColor = useMemo(() => new THREE.Color(selectedColor), []);
+  const hoveredColor = useMemo(() => new THREE.Color('#333333'), []);
+
+  const elevation = isSelected ? 0.45 : hovered ? 0.15 : 0.05;
+  const plotHeight = 0.25;
 
   useFrame((_state, delta) => {
     if (!meshRef.current) return;
@@ -53,7 +66,7 @@ export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, 
         castShadow
         receiveShadow
       >
-        <boxGeometry args={[data.width, 0.12, data.depth]} />
+        <boxGeometry args={[data.width, plotHeight, data.depth]} />
         <meshStandardMaterial
           roughness={0.4}
           metalness={0.2}
@@ -63,21 +76,20 @@ export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, 
         />
       </mesh>
 
-      {/* Border */}
-      <lineSegments position={[data.x + data.width / 2, elevation + 0.08, data.z + data.depth / 2]}>
-        <edgesGeometry args={[new THREE.BoxGeometry(data.width, 0.12, data.depth)]} />
+      <lineSegments position={[data.x + data.width / 2, elevation + 0.13, data.z + data.depth / 2]}>
+        <edgesGeometry args={[new THREE.BoxGeometry(data.width, plotHeight, data.depth)]} />
         <lineBasicMaterial color={isSelected ? '#ffffff' : '#444444'} transparent opacity={isSelected ? 1 : 0.4} />
       </lineSegments>
 
       {/* Plot number label */}
       <Text
-        position={[data.x + data.width / 2, elevation + 0.15, data.z + data.depth / 2]}
+        position={[data.x + data.width / 2, elevation + 0.2, data.z + data.depth / 2]}
         rotation={[-Math.PI / 2, 0, 0]}
-        fontSize={Math.min(data.width, data.depth) * 0.32}
-        color={isSelected ? '#ffffff' : '#3a3a3a'}
+        fontSize={Math.min(data.width, data.depth) * 0.35}
+        color={isSelected ? '#ffffff' : 'rgba(0,0,0,0.8)'}
+        font="https://fonts.gstatic.com/s/spacegrotesk/v15/V8mDoQDj3S50pg7EbD8C-0nc7VfV.woff2"
         anchorX="center"
         anchorY="middle"
-        fillOpacity={0.85}
       >
         {data.number}
       </Text>

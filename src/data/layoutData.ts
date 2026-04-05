@@ -14,7 +14,7 @@ import type { PlotData, RoadData, TreeData, SpecialArea } from '../types';
 //   Block E/D (right upper/lower) | 9m Rd | Block A (strip)
 // ============================================================
 
-const PLOT_STATUSES: PlotData['status'][] = ['available', 'sold', 'reserved'];
+
 
 function createPlot(
   num: number,
@@ -28,8 +28,8 @@ function createPlot(
   const hash = ((num * 7 + 13) % 100);
   let status: PlotData['status'] = 'available';
   if (!statusOverride) {
-    if (hash > 78) status = 'sold';
-    else if (hash > 60) status = 'reserved';
+    if (hash > 82) status = 'sold';
+    else if (hash > 70) status = 'corner';
   } else {
     status = statusOverride;
   }
@@ -38,6 +38,7 @@ function createPlot(
     id: `plot-${num}`,
     number: String(num),
     status,
+    category: num < 30 ? 'Commercial' : num > 80 ? 'Premium' : 'Residential',
     price: Math.floor(180 + (num * 3.7 % 120)) * 1000,
     area: Math.floor(width * depth * 100), // sq ft equivalent
     x, z, width, depth,
@@ -49,7 +50,7 @@ const PW = 3.0;   // standard plot width  (~9m real)
 const PD = 3.5;   // standard plot depth  (~10.5m real)
 const PWs = 2.5;  // small plot width     (~7.5m real)
 const PDs = 3.0;  // small plot depth     (~9m real)
-const G = 0.2;    // gap between plots
+
 
 // ============================================================
 // BLOCK K — Far-left, single column (plots 114→101,105,108,109,110,111,112,113,114)
@@ -275,7 +276,7 @@ const blockD_top: PlotData[] = [
   createPlot(1,  63.1, -17, PWs, PDs),
 ];
 // Deduplicate IDs
-blockD_top.forEach((p, i) => { p.id = `plot-${p.number}d`; });
+blockD_top.forEach((p) => { p.id = `plot-${p.number}d`; });
 
 const blockD_bot: PlotData[] = [
   createPlot(18, 37.5, -13.5, PWs, PDs),

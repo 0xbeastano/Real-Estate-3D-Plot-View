@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useRef, useMemo } from 'react';
 import { CameraControls } from '@react-three/drei';
+import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { PlotData } from '../types';
 import { allPlots, roads, trees, specialAreas } from '../data/layoutData';
@@ -16,12 +17,24 @@ interface SceneProps {
   onSelectPlot: (plot: PlotData | null) => void;
   filteredPlots: PlotData[];
   showStatus: boolean;
+  showCategories: boolean;
+  onCameraChange: (rot: number) => void;
 }
+
+const CompassSync = ({ onCameraChange }: { onCameraChange: (rot: number) => void }) => {
+  const { camera } = useThree();
+  useFrame(() => {
+    // Basic azimuthal rotation calculation
+    const rot = Math.atan2(camera.position.x, camera.position.z);
+    onCameraChange(rot);
+  });
+  return null;
+};
 
 const Ground = () => (
   <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, -5]} receiveShadow>
     <planeGeometry args={[160, 80]} />
-    <meshStandardMaterial color="#2c2f33" roughness={0.95} metalness={0.0} />
+    <meshStandardMaterial color="#111111" roughness={0.8} />
   </mesh>
 );
 
@@ -32,18 +45,25 @@ const EstateBorder = () => (
   </mesh>
 );
 
-export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPlot, filteredPlots, showStatus }) => {
+export const Scene: React.FC<SceneProps> = ({ 
+  viewMode, 
+  selectedPlot, 
+  onSelectPlot, 
+  filteredPlots, 
+  showStatus, 
+  showCategories, 
+  onCameraChange 
+}) => {
   const controlsRef = useRef<CameraControls>(null);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   
   // Calculate the bounding box of the entire layout based on plot data.
-  // This ensures the camera can frame everything perfectly regardless of layout changes.
   const layoutBox = useMemo(() => {
     const box = new THREE.Box3();
     allPlots.forEach(p => {
       box.expandByPoint(new THREE.Vector3(p.x, 0, p.z));
       box.expandByPoint(new THREE.Vector3(p.x + p.width, 2, p.z + p.depth));
     });
-    // Add amenities/specials to bounds
     specialAreas.forEach(a => {
       box.expandByPoint(new THREE.Vector3(a.x, 0, a.z));
       box.expandByPoint(new THREE.Vector3(a.x + a.width, 2, a.z + a.depth));
@@ -59,92 +79,81 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
     const center = new THREE.Vector3();
     layoutBox.getCenter(center);
     
-    // Cinematic Smoothness
-    controls.smoothTime = 0.8;
+    controls.smoothTime = isMobile ? 0.6 : 0.8;
     controls.draggingSmoothTime = 0.3;
-    controls.truckSpeed = 1.2;
-    controls.dollySpeed = 0.4; // Slower, smoother zoom
+    controls.truckSpeed = isMobile ? 0.8 : 1.2;
+    controls.dollySpeed = isMobile ? 0.3 : 0.4; 
     controls.azimuthRotateSpeed = 0.5;
     controls.polarRotateSpeed = 0.5;
 
-    // Base settings common to all modes unless restricted
     controls.minDistance = 5;
     controls.maxDistance = 150;
     
-    // Clear restrictions
     controls.minPolarAngle = 0;
     controls.maxPolarAngle = Math.PI;
     controls.minAzimuthAngle = -Infinity;
     controls.maxAzimuthAngle = Infinity;
-    controls.mouseButtons.left = 1; // 1 = ROTATE
+    controls.mouseButtons.left = 1; 
 
     if (selectedPlot) {
-      // Step 4: FOCUS ON SELECTED PLOT
       const cx = selectedPlot.x + selectedPlot.width / 2;
       const cz = selectedPlot.z + selectedPlot.depth / 2;
 
       if (viewMode === '2D') {
         controls.setLookAt(cx, 30, cz, cx, 0, cz, true);
-        // Lock rotation in 2D mode
-        controls.mouseButtons.left = 2; // 2 = TRUCK
+        controls.mouseButtons.left = 2; 
         controls.maxPolarAngle = 0.001; 
       } else if (viewMode === 'SIDE') {
         controls.setLookAt(cx + 15, 8, cz + 15, cx, 0, cz, true);
-        controls.maxPolarAngle = Math.PI / 2 - 0.05; // Ground limit
+        controls.maxPolarAngle = Math.PI / 2 - 0.05;
       } else {
-        // Default 3D
         controls.setLookAt(cx + 8, 12, cz + 12, cx, 0, cz, true);
         controls.maxPolarAngle = Math.PI / 2 - 0.05;
       }
     } else {
-      // Step 1: AUTO CENTER + FIT VIEW
       if (viewMode === '2D') {
-        // 2D MODE: Top-down, rotation locked
-        controls.mouseButtons.left = 2; // 2 = TRUCK
+        controls.mouseButtons.left = 2; 
         controls.minPolarAngle = 0;
-        controls.maxPolarAngle = 0.001; // Lock near pure top-down
-        
-        // Use fitToBox to frame the entire layout perfectly from top
+        controls.maxPolarAngle = 0.001;
         controls.fitToBox(layoutBox, true, { paddingTop: 2, paddingBottom: 2, paddingLeft: 2, paddingRight: 2 });
       } else if (viewMode === 'SIDE') {
-        // SIDE VIEW: Side angle, slight elevation
         controls.maxPolarAngle = Math.PI / 2.2; 
         controls.setLookAt(center.x + 60, 20, center.z + 50, center.x, center.y, center.z, true);
       } else {
-        // 3D MODE: Angle perspective, full control, padded
         controls.maxPolarAngle = Math.PI / 2 - 0.05; 
         controls.setLookAt(center.x + 30, 40, center.z + 40, center.x, center.y, center.z, true);
       }
     }
-  }, [viewMode, selectedPlot, layoutBox]);
+  }, [viewMode, selectedPlot, layoutBox, isMobile]);
 
   const filteredIds = new Set(filteredPlots.map(p => p.id));
 
   return (
     <>
-      {/* 
-        Step 6 & 7: CameraControls manages restrictions smoothly via lerping,
-        providing professional standard interactions (rotation, pan bounding, damping)
-      */}
-      <CameraControls ref={controlsRef} makeDefault />
-
-      <ambientLight intensity={0.6} color="#c8d0e0" />
-      <directionalLight
-        position={[20, 40, 20]}
-        intensity={1.2}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-far={150}
-        shadow-camera-left={-80}
-        shadow-camera-right={80}
-        shadow-camera-top={60}
-        shadow-camera-bottom={-60}
+      <CameraControls
+        ref={controlsRef}
+        makeDefault
       />
-      <directionalLight position={[-15, 20, -10]} intensity={0.3} color="#94b8ff" />
-      <hemisphereLight args={['#1a1a2e', '#0a0a0f', 0.4]} />
+      <CompassSync onCameraChange={onCameraChange} />
 
-      <color attach="background" args={['#000000']} />
-      <fog attach="fog" args={['#000000', 80, 200]} />
+      <ambientLight intensity={isMobile ? 0.6 : 0.4} color="#ffffff" />
+      <directionalLight
+        position={[15, 25, 10]}
+        intensity={1.2}
+        castShadow={!isMobile}
+        shadow-mapSize={isMobile ? [512, 512] : [1024, 1024]}
+        shadow-camera-far={80}
+        shadow-camera-left={-25}
+        shadow-camera-right={25}
+        shadow-camera-top={25}
+        shadow-camera-bottom={-25}
+        shadow-bias={-0.0005}
+      />
+      <directionalLight position={[-10, 10, -10]} intensity={0.3} color="#8bb5ff" />
+      <hemisphereLight args={['#1a1a2e', '#0f0f0f', 0.5]} />
+
+      <color attach="background" args={['#0f0f0f']} />
+      <fogExp2 attach="fog" args={['#0f0f0f', 0.035]} />
 
       <Suspense fallback={null}>
         <Ground />
@@ -162,6 +171,7 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
               isSelected={selectedPlot?.id === plot.id}
               onSelect={onSelectPlot}
               showStatus={showStatus}
+              showCategories={showCategories}
             />
           );
         })}
