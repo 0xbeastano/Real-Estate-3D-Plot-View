@@ -227,26 +227,32 @@ const blockF_col3: PlotData[] = [
 ];
 
 // ============================================================
-// BLOCK E — Right upper section (3×2 grid above 9m road)
-// Row 1 (top): 18, 17, 16
-// Row 2: 19, 15, 14
-// Row 3: 20, 13
+// BLOCK E — Right section (between Block F and Block D)
+// Based on image: 2 columns, vertical
+// Column 1 (left): 18, 15, 20, 21, 22
+// Column 2 (right): 17, 16, 14, 13, 12
 // ============================================================
-const blockE: PlotData[] = [
-  createPlot(18, 26, -17, PW, PD),
-  createPlot(17, 30, -17, PW, PD),
-  createPlot(16, 34, -17, PW, PD),
-  createPlot(19, 26, -13, PW, PD),
-  createPlot(15, 30, -13, PW, PD),
-  createPlot(14, 34, -13, PW, PD),
-  createPlot(20, 26, -9,  PW, PD),
-  createPlot(13, 30, -9,  PW, PD),
+const blockE_col1: PlotData[] = [
+  createPlot(18, 25, -17, PW, PD),
+  createPlot(15, 25, -13, PW, PD),
+  createPlot(20, 25, -9.5, PW, PD),
+  createPlot(21, 25, -6, PW, PD),
+  createPlot(22, 25, -2.5, PW, PD),
 ];
-// Deduplicate shared numbers with other blocks
-blockE[0].id = 'plot-18e';
-blockE[3].id = 'plot-19e';
-blockE[6].id = 'plot-20e';
-blockE[7].id = 'plot-13e';
+blockE_col1[0].id = 'plot-18e';
+blockE_col1[1].id = 'plot-15e';
+blockE_col1[2].id = 'plot-20e';
+
+const blockE_col2: PlotData[] = [
+  createPlot(17, 28.5, -17, PW, PD),
+  createPlot(16, 32, -17, PW, PD),
+  createPlot(14, 28.5, -13, PW, PD),
+  createPlot(13, 28.5, -9.5, PW, PD),
+  createPlot(12, 28.5, -6, PW, PD),
+];
+blockE_col2[2].id = 'plot-14e';
+blockE_col2[3].id = 'plot-13e';
+blockE_col2[4].id = 'plot-12e';
 
 // ============================================================
 // BLOCK D — Right section, two long rows flanking 9m road
@@ -254,36 +260,36 @@ blockE[7].id = 'plot-13e';
 // Bottom row: 18,27,25,24,23,13,12,11,10,9,8,7
 // ============================================================
 const blockD_top: PlotData[] = [
-  createPlot(15, 26, -20.5, PWs, PDs),
-  createPlot(14, 28.8, -20.5, PWs, PDs),
-  createPlot(13, 31.6, -20.5, PWs, PDs),
-  createPlot(12, 34.4, -20.5, PWs, PDs),
-  createPlot(11, 37.2, -20.5, PWs, PDs),
-  createPlot(10, 40.0, -20.5, PWs, PDs),
-  createPlot(9,  42.8, -20.5, PWs, PDs),
-  createPlot(7,  45.6, -20.5, PWs, PDs),
-  createPlot(6,  48.0, -20.5, PWs, PDs),
-  createPlot(5,  50.4, -20.5, PWs, PDs),
-  createPlot(3,  52.8, -20.5, PWs, PDs),
-  createPlot(2,  55.2, -20.5, PWs, PDs),
-  createPlot(1,  57.6, -20.5, PWs, PDs),
+  createPlot(15, 37.5, -17, PWs, PDs),
+  createPlot(14, 39.8, -17, PWs, PDs),
+  createPlot(13, 42.1, -17, PWs, PDs),
+  createPlot(12, 44.4, -17, PWs, PDs),
+  createPlot(11, 46.7, -17, PWs, PDs),
+  createPlot(10, 49.0, -17, PWs, PDs),
+  createPlot(9,  51.3, -17, PWs, PDs),
+  createPlot(7,  53.6, -17, PWs, PDs),
+  createPlot(6,  55.5, -17, PWs, PDs),
+  createPlot(5,  57.4, -17, PWs, PDs),
+  createPlot(3,  59.3, -17, PWs, PDs),
+  createPlot(2,  61.2, -17, PWs, PDs),
+  createPlot(1,  63.1, -17, PWs, PDs),
 ];
 // Deduplicate IDs
 blockD_top.forEach((p, i) => { p.id = `plot-${p.number}d`; });
 
 const blockD_bot: PlotData[] = [
-  createPlot(18, 26,   -6, PWs, PDs),
-  createPlot(27, 28.8, -6, PWs, PDs),
-  createPlot(25, 31.6, -6, PWs, PDs),
-  createPlot(24, 34.4, -6, PWs, PDs),
-  createPlot(23, 37.2, -6, PWs, PDs),
-  createPlot(13, 40.0, -6, PWs, PDs),
-  createPlot(12, 42.8, -6, PWs, PDs),
-  createPlot(11, 45.6, -6, PWs, PDs),
-  createPlot(10, 48.0, -6, PWs, PDs),
-  createPlot(9,  50.4, -6, PWs, PDs),
-  createPlot(8,  52.8, -6, PWs, PDs),
-  createPlot(7,  55.2, -6, PWs, PDs),
+  createPlot(18, 37.5, -13.5, PWs, PDs),
+  createPlot(27, 39.8, -13.5, PWs, PDs),
+  createPlot(25, 42.1, -13.5, PWs, PDs),
+  createPlot(24, 44.4, -13.5, PWs, PDs),
+  createPlot(23, 46.7, -13.5, PWs, PDs),
+  createPlot(13, 49.0, -13.5, PWs, PDs),
+  createPlot(12, 51.3, -13.5, PWs, PDs),
+  createPlot(11, 53.6, -13.5, PWs, PDs),
+  createPlot(10, 55.5, -13.5, PWs, PDs),
+  createPlot(9,  57.4, -13.5, PWs, PDs),
+  createPlot(8,  59.3, -13.5, PWs, PDs),
+  createPlot(7,  61.2, -13.5, PWs, PDs),
 ];
 blockD_bot.forEach((p) => { p.id = `plot-${p.number}db`; });
 
@@ -292,12 +298,12 @@ blockD_bot.forEach((p) => { p.id = `plot-${p.number}db`; });
 // Top→Bottom: 6,5,4,3,2,1
 // ============================================================
 const blockA: PlotData[] = [
-  createPlot(6, 60, -17, 2.0, 2.8),
-  createPlot(5, 60, -14, 2.0, 2.8),
-  createPlot(4, 60, -11, 2.0, 2.8),
-  createPlot(3, 60, -8,  2.0, 2.8),
-  createPlot(2, 60, -5,  2.0, 2.8),
-  createPlot(1, 60, -2,  2.0, 2.8),
+  createPlot(6, 68, -17, 2.0, 2.8),
+  createPlot(5, 68, -14, 2.0, 2.8),
+  createPlot(4, 68, -11, 2.0, 2.8),
+  createPlot(3, 68, -8,  2.0, 2.8),
+  createPlot(2, 68, -5,  2.0, 2.8),
+  createPlot(1, 68, -2,  2.0, 2.8),
 ];
 blockA.forEach((p) => { p.id = `plot-${p.number}a`; });
 
@@ -311,7 +317,7 @@ export const allPlots: PlotData[] = [
   ...blockH_col1, ...blockH_col2, ...blockH_col3,
   ...blockG_col1, ...blockG_col2, ...blockG_col3,
   ...blockF_col1, ...blockF_col2, ...blockF_col3,
-  ...blockE,
+  ...blockE_col1, ...blockE_col2,
   ...blockD_top, ...blockD_bot,
   ...blockA,
 ];
@@ -339,7 +345,7 @@ export const roads: RoadData[] = [
 
   // --- 9 Meter Roads ---
   { id: 'road-9m-v1', x: -5.5, z: -7, width: 2.0, depth: 28, label: '9 Meter Road', labelRotation: -Math.PI / 2 },
-  { id: 'road-9m-h1', x: 42, z: -12.5, width: 38, depth: 2.0, label: '9 Meter Road' },
+  { id: 'road-9m-v2', x: 34.5, z: -8, width: 2.0, depth: 28, label: '9 Meter Road', labelRotation: -Math.PI / 2 },
 
   // --- 8 Meter Road ---
   { id: 'road-8m-v1', x: 8, z: -7, width: 1.8, depth: 28, label: '8 Meter Road', labelRotation: -Math.PI / 2 },
