@@ -22,9 +22,10 @@ function createPlot(
   z: number,
   width: number,
   depth: number,
+  block: string,
+  category: PlotData['category'] = 'Residential',
   statusOverride?: PlotData['status']
 ): PlotData {
-  // Deterministic but varied status based on plot number
   const hash = ((num * 7 + 13) % 100);
   let status: PlotData['status'] = 'available';
   if (!statusOverride) {
@@ -33,14 +34,16 @@ function createPlot(
   } else {
     status = statusOverride;
   }
+  const finalCategory = (status === 'corner') ? 'Corner' : category;
 
   return {
-    id: `plot-${num}`,
+    id: `plot-${num}-${block}-${x}-${z}`, // Guaranteed unique
     number: String(num),
+    block,
+    category: finalCategory,
     status,
-    category: num < 30 ? 'Commercial' : num > 80 ? 'Premium' : 'Residential',
     price: Math.floor(180 + (num * 3.7 % 120)) * 1000,
-    area: Math.floor(width * depth * 100), // sq ft equivalent
+    area: Math.floor(width * depth * 100),
     x, z, width, depth,
   };
 }
@@ -56,15 +59,15 @@ const PDs = 3.0;  // small plot depth     (~9m real)
 // BLOCK K — Far-left, single column (plots 114→101,105,108,109,110,111,112,113,114)
 // ============================================================
 const blockK: PlotData[] = [
-  createPlot(114, -52, -17,  PW, PD),
-  createPlot(113, -52, -13,  PW, PD),
-  createPlot(112, -52, -9,   PW, PD),
-  createPlot(111, -52, -5,   PW, PD),
-  createPlot(110, -52, -1,   PW, PD),
-  createPlot(109, -52,  3,   PW, PD),
-  createPlot(108, -52,  7,   PW, PD),
-  createPlot(105, -52, 11,   PW, PD),
-  createPlot(101, -52, 15,   PW, PD),
+  createPlot(114, -52, -18,  PW, PD, 'K', 'Residential'),
+  createPlot(113, -52, -14,  PW, PD, 'K', 'Residential'),
+  createPlot(112, -52, -10,   PW, PD, 'K', 'Residential'),
+  createPlot(111, -52, -6,   PW, PD, 'K', 'Residential'),
+  createPlot(110, -52, -2,   PW, PD, 'K', 'Residential'),
+  createPlot(109, -52,  2,   PW, PD, 'K', 'Residential'),
+  createPlot(108, -52,  6,   PW, PD, 'K', 'Residential'),
+  createPlot(105, -52, 10,   PW, PD, 'K', 'Residential'),
+  createPlot(101, -52, 14,   PW, PD, 'K', 'Residential'),
 ];
 
 // ============================================================
@@ -73,32 +76,27 @@ const blockK: PlotData[] = [
 // Col 2: 93,92,92,91,90,99,98,88,87
 // ============================================================
 const blockJ_col1: PlotData[] = [
-  createPlot(59,  -44, -17, PW, PD),
-  createPlot(86,  -44, -13, PW, PD),
-  createPlot(97,  -44, -9,  PW, PD),
-  createPlot(94,  -44, -5,  PW, PD),
-  createPlot(100, -44, -1,  PW, PD),
-  createPlot(101, -44,  3,  PW, PD),  // different plot-101 from block K
-  createPlot(103, -44,  7,  PW, PD),
-  createPlot(102, -44, 11,  PW, PD),
-  createPlot(101, -44, 15,  PW, PD),
+  createPlot(59,  -44, -18.5, PW, PD, 'J', 'Residential'),
+  createPlot(86,  -44, -14.5, PW, PD, 'J', 'Residential'),
+  createPlot(97,  -44, -10.5, PW, PD, 'J', 'Residential'),
+  createPlot(94,  -44, -6.5,  PW, PD, 'J', 'Residential'),
+  createPlot(100, -44, -2.5,  PW, PD, 'J', 'Residential'),
+  createPlot(101, -44,  9.5,  PW, PD, 'J', 'Residential'),
+  createPlot(103, -44,  13.5, PW, PD, 'J', 'Residential'),
+  createPlot(102, -44,  17.5, PW, PD, 'J', 'Residential'),
+  createPlot(101, -44,  21.5, PW, PD, 'J', 'Residential'),
 ];
-// Deduplicate IDs for plot-101
-blockJ_col1[5].id = 'plot-101b';
-blockJ_col1[8].id = 'plot-101c';
-
 const blockJ_col2: PlotData[] = [
-  createPlot(93, -40.5, -17, PW, PD),
-  createPlot(92, -40.5, -13, PW, PD),
-  createPlot(92, -40.5, -9,  PW, PD), // appears twice in image
-  createPlot(91, -40.5, -5,  PW, PD),
-  createPlot(90, -40.5, -1,  PW, PD),
-  createPlot(99, -40.5,  3,  PW, PD),
-  createPlot(98, -40.5,  7,  PW, PD),
-  createPlot(88, -40.5, 11,  PW, PD),
-  createPlot(87, -40.5, 15,  PW, PD),
+  createPlot(93, -40.5, -18.5, PW, PD, 'J', 'Residential'),
+  createPlot(92, -40.5, -14.5, PW, PD, 'J', 'Residential'),
+  createPlot(92, -40.5, -10.5, PW, PD, 'J', 'Residential'),
+  createPlot(91, -40.5, -6.5,  PW, PD, 'J', 'Residential'),
+  createPlot(90, -40.5, -2.5,  PW, PD, 'J', 'Residential'),
+  createPlot(99, -40.5,  9.5,  PW, PD, 'J', 'Residential'),
+  createPlot(98, -40.5,  13.5, PW, PD, 'J', 'Residential'),
+  createPlot(88, -40.5,  17.5, PW, PD, 'J', 'Residential'),
+  createPlot(87, -40.5,  21.5, PW, PD, 'J', 'Residential'),
 ];
-blockJ_col2[2].id = 'plot-92b';
 
 // ============================================================
 // BLOCK I — 2-column block
@@ -106,29 +104,28 @@ blockJ_col2[2].id = 'plot-92b';
 // Col 2: 74,70,71,70,68,67,66,65,64
 // ============================================================
 const blockI_col1: PlotData[] = [
-  createPlot(76, -30, -17, PW, PD),
-  createPlot(78, -30, -13, PW, PD),
-  createPlot(78, -30, -9,  PW, PD),
-  createPlot(70, -30, -5,  PW, PD),
-  createPlot(69, -30, -1,  PW, PD),
-  createPlot(80, -30,  3,  PW, PD),
-  createPlot(81, -30,  7,  PW, PD),
-  createPlot(82, -30, 11,  PW, PD),
-  createPlot(83, -30, 15,  PW, PD),
-  createPlot(84, -30, 19,  PW, PD),
+  createPlot(76, -30, -18, PW, PD, 'I', 'Residential'),
+  createPlot(78, -30, -14, PW, PD, 'I', 'Residential'),
+  createPlot(78, -30, -10,  PW, PD, 'I', 'Residential'),
+  createPlot(70, -30, -6,  PW, PD, 'I', 'Residential'),
+  createPlot(69, -30, -2,  PW, PD, 'I', 'Residential'),
+  createPlot(80, -30,  2,  PW, PD, 'I', 'Residential'),
+  createPlot(81, -30,  6,  PW, PD, 'I', 'Residential'),
+  createPlot(82, -30, 10,  PW, PD, 'I', 'Residential'),
+  createPlot(83, -30, 14,  PW, PD, 'I', 'Residential'),
+  createPlot(84, -30, 18,  PW, PD, 'I', 'Residential'),
 ];
 blockI_col1[2].id = 'plot-78b';
-
 const blockI_col2: PlotData[] = [
-  createPlot(74, -26.5, -17, PW, PD),
-  createPlot(70, -26.5, -13, PW, PD),
-  createPlot(71, -26.5, -9,  PW, PD),
-  createPlot(70, -26.5, -5,  PW, PD),
-  createPlot(68, -26.5, -1,  PW, PD),
-  createPlot(67, -26.5,  3,  PW, PD),
-  createPlot(66, -26.5,  7,  PW, PD),
-  createPlot(65, -26.5, 11,  PW, PD),
-  createPlot(64, -26.5, 15,  PW, PD),
+  createPlot(74, -26.5, -18, PW, PD, 'I', 'Residential'),
+  createPlot(70, -26.5, -14, PW, PD, 'I', 'Residential'),
+  createPlot(71, -26.5, -10,  PW, PD, 'I', 'Residential'),
+  createPlot(70, -26.5, -6,  PW, PD, 'I', 'Residential'),
+  createPlot(68, -26.5, -2,  PW, PD, 'I', 'Residential'),
+  createPlot(67, -26.5,  2,  PW, PD, 'I', 'Residential'),
+  createPlot(66, -26.5,  6,  PW, PD, 'I', 'Residential'),
+  createPlot(65, -26.5, 10,  PW, PD, 'I', 'Residential'),
+  createPlot(64, -26.5, 14,  PW, PD, 'I', 'Residential'),
 ];
 blockI_col2[1].id = 'plot-70b';
 blockI_col2[3].id = 'plot-70c';
@@ -140,30 +137,28 @@ blockI_col2[3].id = 'plot-70c';
 // Col 3: 54,53,52,50,40
 // ============================================================
 const blockH_col1: PlotData[] = [
-  createPlot(57, -16, -17, PW, PD),
-  createPlot(58, -16, -13, PW, PD),
-  createPlot(59, -16, -9,  PW, PD),
-  createPlot(61, -16, -5,  PW, PD),
-  createPlot(62, -16, -1,  PW, PD),
-  createPlot(63, -16,  3,  PW, PD),
+  createPlot(57, -17, -18, PW, PD, 'H', 'Residential'),
+  createPlot(58, -17, -14, PW, PD, 'H', 'Residential'),
+  createPlot(59, -17, -10,  PW, PD, 'H', 'Residential'),
+  createPlot(61, -17, -6,  PW, PD, 'H', 'Residential'),
+  createPlot(62, -17, -2,  PW, PD, 'H', 'Residential'),
+  createPlot(63, -17,  2,  PW, PD, 'H', 'Residential'),
 ];
 blockH_col1[2].id = 'plot-59b';
-
 const blockH_col2: PlotData[] = [
-  createPlot(56, -12.5, -17, PW, PD),
-  createPlot(54, -12.5, -13, PW, PD),
-  createPlot(53, -12.5, -9,  PW, PD),
-  createPlot(52, -12.5, -5,  PW, PD),
-  createPlot(51, -12.5, -1,  PW, PD),
-  createPlot(50, -12.5,  3,  PW, PD),
+  createPlot(56, -13.5, -18, PW, PD, 'H', 'Residential'),
+  createPlot(54, -13.5, -14, PW, PD, 'H', 'Residential'),
+  createPlot(53, -13.5, -10,  PW, PD, 'H', 'Residential'),
+  createPlot(52, -13.5, -6,  PW, PD, 'H', 'Residential'),
+  createPlot(51, -13.5, -2,  PW, PD, 'H', 'Residential'),
+  createPlot(50, -13.5,  2,  PW, PD, 'H', 'Residential'),
 ];
-
 const blockH_col3: PlotData[] = [
-  createPlot(54, -9, -17, PW, PD),
-  createPlot(53, -9, -13, PW, PD),
-  createPlot(52, -9, -9,  PW, PD),
-  createPlot(50, -9, -5,  PW, PD),
-  createPlot(40, -9,  3,  PW, PD),
+  createPlot(54, -10, -18, PW, PD, 'H', 'Residential'),
+  createPlot(53, -10, -14, PW, PD, 'H', 'Residential'),
+  createPlot(52, -10, -10,  PW, PD, 'H', 'Residential'),
+  createPlot(50, -10, -6,  PW, PD, 'H', 'Residential'),
+  createPlot(40, -10,  2,  PW, PD, 'H', 'Residential'),
 ];
 blockH_col3[0].id = 'plot-54b';
 blockH_col3[1].id = 'plot-53b';
@@ -176,25 +171,23 @@ blockH_col3[3].id = 'plot-50b';
 // Col 3 stub: 42
 // ============================================================
 const blockG_col1: PlotData[] = [
-  createPlot(43, -2, -17, PW, PD),
-  createPlot(44, -2, -13, PW, PD),
-  createPlot(49, -2, -9,  PW, PD),
-  createPlot(39, -2, -5,  PW, PD),
-  createPlot(47, -2, -1,  PW, PD),
-  createPlot(48, -2,  3,  PW, PD),
+  createPlot(43, -2, -18, PW, PD, 'G', 'Residential'),
+  createPlot(44, -2, -14, PW, PD, 'G', 'Residential'),
+  createPlot(49, -2, -10,  PW, PD, 'G', 'Residential'),
+  createPlot(39, -2, -6,  PW, PD, 'G', 'Residential'),
+  createPlot(47, -2, -2,  PW, PD, 'G', 'Residential'),
+  createPlot(48, -2,  2,  PW, PD, 'G', 'Residential'),
 ];
-
 const blockG_col2: PlotData[] = [
-  createPlot(42, 1.5, -17, PW, PD),
-  createPlot(40, 1.5, -13, PW, PD),
-  createPlot(38, 1.5, -9,  PW, PD),
-  createPlot(37, 1.5, -5,  PW, PD),
-  createPlot(48, 1.5, -1,  PW, PD),
+  createPlot(42, 1.5, -18, PW, PD, 'G', 'Residential'),
+  createPlot(40, 1.5, -14, PW, PD, 'G', 'Residential'),
+  createPlot(38, 1.5, -10,  PW, PD, 'G', 'Residential'),
+  createPlot(37, 1.5, -6,  PW, PD, 'G', 'Residential'),
+  createPlot(48, 1.5, -2,  PW, PD, 'G', 'Residential'),
 ];
 blockG_col2[4].id = 'plot-48b';
-
 const blockG_col3: PlotData[] = [
-  createPlot(42, 5, -17, PW, PD),
+  createPlot(42, 5, -18, PW, PD, 'G', 'Residential'),
 ];
 blockG_col3[0].id = 'plot-42b';
 
@@ -204,27 +197,26 @@ blockG_col3[0].id = 'plot-42b';
 // Col 3: 28,20,21,12
 // ============================================================
 const blockF_col1: PlotData[] = [
-  createPlot(31, 12, -17, PW, PD),
-  createPlot(32, 12, -13, PW, PD),
-  createPlot(26, 12, -9,  PW, PD),
-  createPlot(34, 12, -5,  PW, PD),
-  createPlot(35, 12, -1,  PW, PD),
-  createPlot(23, 12,  3,  PW, PD),
+  createPlot(31, 12, -18, PW, PD, 'F', 'Premium'),
+  createPlot(32, 12, -14, PW, PD, 'F', 'Premium'),
+  createPlot(26, 12, -10,  PW, PD, 'F', 'Premium'),
+  createPlot(34, 12, -6,  PW, PD, 'F', 'Premium'),
+  createPlot(35, 12, -2,  PW, PD, 'F', 'Premium'),
+  createPlot(23, 12,  2,  PW, PD, 'F', 'Premium'),
 ];
 
 const blockF_col2: PlotData[] = [
-  createPlot(30, 15.5, -17, PW, PD),
-  createPlot(27, 15.5, -13, PW, PD),
-  createPlot(25, 15.5, -9,  PW, PD),
-  createPlot(24, 15.5, -5,  PW, PD),
-  createPlot(22, 15.5,  3,  PW, PD),
+  createPlot(30, 15.5, -18, PW, PD, 'F', 'Premium'),
+  createPlot(27, 15.5, -14, PW, PD, 'F', 'Premium'),
+  createPlot(25, 15.5, -10,  PW, PD, 'F', 'Premium'),
+  createPlot(24, 15.5, -6,  PW, PD, 'F', 'Premium'),
+  createPlot(22, 15.5,  2,  PW, PD, 'F', 'Premium'),
 ];
-
 const blockF_col3: PlotData[] = [
-  createPlot(28, 19, -17, PW, PD),
-  createPlot(20, 19, -13, PW, PD),
-  createPlot(21, 19, -9,  PW, PD),
-  createPlot(12, 19,  3,  PW, PD),
+  createPlot(28, 19, -18, PW, PD, 'F', 'Premium'),
+  createPlot(20, 19, -14, PW, PD, 'F', 'Premium'),
+  createPlot(21, 19, -10,  PW, PD, 'F', 'Premium'),
+  createPlot(12, 19,  2,  PW, PD, 'F', 'Premium'),
 ];
 
 // ============================================================
@@ -261,36 +253,36 @@ blockE_col2[4].id = 'plot-12e';
 // Bottom row: 18,27,25,24,23,13,12,11,10,9,8,7
 // ============================================================
 const blockD_top: PlotData[] = [
-  createPlot(15, 37.5, -17, PWs, PDs),
-  createPlot(14, 39.8, -17, PWs, PDs),
-  createPlot(13, 42.1, -17, PWs, PDs),
-  createPlot(12, 44.4, -17, PWs, PDs),
-  createPlot(11, 46.7, -17, PWs, PDs),
-  createPlot(10, 49.0, -17, PWs, PDs),
-  createPlot(9,  51.3, -17, PWs, PDs),
-  createPlot(7,  53.6, -17, PWs, PDs),
-  createPlot(6,  55.5, -17, PWs, PDs),
-  createPlot(5,  57.4, -17, PWs, PDs),
-  createPlot(3,  59.3, -17, PWs, PDs),
-  createPlot(2,  61.2, -17, PWs, PDs),
-  createPlot(1,  63.1, -17, PWs, PDs),
+  createPlot(15, 37.5, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(14, 39.8, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(13, 42.1, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(12, 44.4, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(11, 46.7, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(10, 49.0, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(9,  51.3, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(7,  53.6, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(6,  55.5, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(5,  57.4, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(3,  59.3, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(2,  61.2, -18.5, PWs, PDs, 'D', 'Commercial'),
+  createPlot(1,  63.1, -18.5, PWs, PDs, 'D', 'Commercial'),
 ];
 // Deduplicate IDs
 blockD_top.forEach((p) => { p.id = `plot-${p.number}d`; });
 
 const blockD_bot: PlotData[] = [
-  createPlot(18, 37.5, -13.5, PWs, PDs),
-  createPlot(27, 39.8, -13.5, PWs, PDs),
-  createPlot(25, 42.1, -13.5, PWs, PDs),
-  createPlot(24, 44.4, -13.5, PWs, PDs),
-  createPlot(23, 46.7, -13.5, PWs, PDs),
-  createPlot(13, 49.0, -13.5, PWs, PDs),
-  createPlot(12, 51.3, -13.5, PWs, PDs),
-  createPlot(11, 53.6, -13.5, PWs, PDs),
-  createPlot(10, 55.5, -13.5, PWs, PDs),
-  createPlot(9,  57.4, -13.5, PWs, PDs),
-  createPlot(8,  59.3, -13.5, PWs, PDs),
-  createPlot(7,  61.2, -13.5, PWs, PDs),
+  createPlot(18, 37.5, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(27, 39.8, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(25, 42.1, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(24, 44.4, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(23, 46.7, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(13, 49.0, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(12, 51.3, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(11, 53.6, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(10, 55.5, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(9,  57.4, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(8,  59.3, 12, PWs, PDs, 'D', 'Commercial'),
+  createPlot(7,  61.2, 12, PWs, PDs, 'D', 'Commercial'),
 ];
 blockD_bot.forEach((p) => { p.id = `plot-${p.number}db`; });
 
@@ -299,14 +291,14 @@ blockD_bot.forEach((p) => { p.id = `plot-${p.number}db`; });
 // Top→Bottom: 6,5,4,3,2,1
 // ============================================================
 const blockA: PlotData[] = [
-  createPlot(6, 68, -17, 2.0, 2.8),
-  createPlot(5, 68, -14, 2.0, 2.8),
-  createPlot(4, 68, -11, 2.0, 2.8),
-  createPlot(3, 68, -8,  2.0, 2.8),
-  createPlot(2, 68, -5,  2.0, 2.8),
-  createPlot(1, 68, -2,  2.0, 2.8),
+  createPlot(6, 75, -18.5, 2.4, 3.2, 'A', 'Commercial'),
+  createPlot(5, 75, -14.5, 2.4, 3.2, 'A', 'Commercial'),
+  createPlot(4, 75, -10.5, 2.4, 3.2, 'A', 'Commercial'),
+  createPlot(3, 75, -6.5,  2.4, 3.2, 'A', 'Commercial'),
+  createPlot(2, 75, -2.5,  2.4, 3.2, 'A', 'Commercial'),
+  createPlot(1, 75,  1.5,  2.4, 3.2, 'A', 'Commercial'),
 ];
-blockA.forEach((p) => { p.id = `plot-${p.number}a`; });
+// No more forEach manual deduction needed as block is in the helper
 
 // ============================================================
 // COMBINE ALL PLOTS

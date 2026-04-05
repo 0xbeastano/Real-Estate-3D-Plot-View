@@ -1,11 +1,11 @@
 export type PlotStatus = 'available' | 'sold' | 'corner';
-export type PlotCategory = 'Commercial' | 'Residential' | 'Premium';
 
 export interface PlotData {
   id: string;
   number: string;
+  block: string;
+  category: 'Residential' | 'Commercial' | 'Premium' | 'Corner';
   status: PlotStatus;
-  category: PlotCategory;
   price: number;
   area: number;
   x: number;

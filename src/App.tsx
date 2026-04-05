@@ -18,7 +18,9 @@ const GalleryIcon = () => (
 const InfoIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
 );
-
+const LocateIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+);
 const ResetIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
 );
@@ -37,19 +39,24 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<PlotData['category'] | 'All'>('All');
   const [viewMode, setViewMode] = useState<ViewMode>('3D');
   const [showStatus, setShowStatus] = useState(true);
-  const [showCategories, setShowCategories] = useState(false);
-  const [showLegend, setShowLegend] = useState(false);
-  const [compassRotation, setCompassRotation] = useState(0);
 
-  const filteredPlots = allPlots;
+  const filteredPlots = useMemo(() => {
+    if (selectedCategory === 'All') return allPlots;
+    return allPlots.filter(p => p.category === selectedCategory);
+  }, [selectedCategory]);
 
   /* ── search ── */
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
     const q = search.trim().toLowerCase();
-    return allPlots.filter(p => p.number.toLowerCase().includes(q)).slice(0, 12);
+    return allPlots.filter(p => 
+      p.number.toLowerCase().includes(q) || 
+      p.block.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q)
+    ).slice(0, 10);
   }, [search]);
 
   /* ── search ── */
@@ -62,12 +69,6 @@ export default function App() {
     setSearch('');
     setShowSearch(false);
   }, []);
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && searchResults.length > 0) {
-      handleFocusPlot(searchResults[0]);
-    }
-  };
 
   return (
     <div className="viewer-shell">
@@ -85,8 +86,6 @@ export default function App() {
             onSelectPlot={handleFocusPlot}
             filteredPlots={filteredPlots}
             showStatus={showStatus}
-            showCategories={showCategories}
-            onCameraChange={(rot) => setCompassRotation(rot)}
           />
         </Canvas>
       </div>
@@ -102,15 +101,7 @@ export default function App() {
         </button>
       </div>
 
-      {/* 2. COMPASS */}
-      <div className="compass-wrap">
-        <div className="compass-circle" style={{ transform: `rotate(${compassRotation}rad)` }}>
-          <div style={{ transform: 'translateY(-2px)' }}>N</div>
-          <div style={{ position: 'absolute', width: 2, height: 12, background: '#ef4444', top: 2, borderRadius: 1 }} />
-        </div>
-      </div>
-
-      {/* 3. VIEW TOGGLE (Vertical) */}
+      {/* 2. VIEW TOGGLE (Vertical) */}
       <div className="view-toggle">
         <button className={`view-btn ${viewMode === '2D' ? 'active' : ''}`} onClick={() => setViewMode('2D')}>2D</button>
         <button className={`view-btn ${viewMode === '3D' ? 'active' : ''}`} onClick={() => setViewMode('3D')}>3D</button>
@@ -123,18 +114,6 @@ export default function App() {
       </button>
 
       {/* 3. PLOT INFO PANEL */}
-      {/* 4. TOGGLES (Floating Right) */}
-      <div className="toggles-group">
-        <div className={`toggle-item ${showCategories ? 'active' : ''}`} onClick={() => { setShowCategories(!showCategories); if (!showCategories) setShowStatus(false); }}>
-           <span>Categories</span>
-           <div className="switch-track"><div className="switch-thumb" /></div>
-        </div>
-        <div className={`toggle-item ${showStatus ? 'active' : ''}`} onClick={() => { setShowStatus(!showStatus); if (!showStatus) setShowCategories(false); }}>
-           <span>Status</span>
-           <div className="switch-track"><div className="switch-thumb" /></div>
-        </div>
-      </div>
-
       <div className={`info-panel ${selectedPlot ? 'open' : ''}`}>
         {selectedPlot && (
           <>
@@ -170,47 +149,45 @@ export default function App() {
         )}
       </div>
 
-      {/* 4. BOTTOM CONTROLS */}
-      <div className="bottom-controls">
-        <div className="bottom-row-1">
-          <div className="status-legend" onMouseLeave={() => setShowLegend(false)}>
-            <button className="legend-toggle" onClick={() => setShowLegend(!showLegend)}>
-              STATUS <div className="legend-indicator" style={{ background: showStatus ? 'var(--color-available)' : 'var(--color-text-faint)' }} />
-            </button>
-            {showLegend && (
-              <div className="legend-popup">
-                <div className="legend-item"><span className="legend-color" style={{ background: 'var(--color-available)' }} /> Available</div>
-                <div className="legend-item"><span className="legend-color" style={{ background: 'var(--color-sold)' }} /> Sold</div>
-                <div className="legend-item"><span className="legend-color" style={{ background: 'var(--color-corner)' }} /> Corner Plot</div>
-                <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 8, paddingTop: 8 }}>
-                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                     <input type="checkbox" checked={showStatus} onChange={e => setShowStatus(e.target.checked)} />
-                     <span style={{ fontSize: 11 }}>SHOW COLORS</span>
-                   </label>
-                </div>
-              </div>
-            )}
+      {/* 4. BOTTOM CONTROLS CLUSTER */}
+      <div className="ui-controls-root">
+        {/* RIGHT CLUSTER: SEARCH & FILTER */}
+        <div className="controls-group-right">
+          <div className="filter-pill-stack">
+            <div className="filter-pill">
+              <span>Categories</span>
+              <button 
+                className={`switch-btn ${selectedCategory !== 'All' ? 'on' : ''}`}
+                onClick={() => setSelectedCategory(selectedCategory === 'All' ? 'Residential' : 'All')}
+              />
+            </div>
+            <div className="filter-pill">
+              <span>Status</span>
+              <button 
+                className={`switch-btn ${showStatus ? 'on' : ''}`}
+                onClick={() => setShowStatus(!showStatus)}
+              />
+            </div>
           </div>
 
-          <div className="search-wrapper">
+          <div className="floating-search">
             <SearchIcon />
             <input
-              className="search-input"
-              placeholder="Search Plot Number..."
+              placeholder="Search Plot..."
               value={search}
               onFocus={() => setShowSearch(true)}
               onChange={e => { setSearch(e.target.value); setShowSearch(true); }}
               onBlur={() => setTimeout(() => setShowSearch(false), 200)}
-              onKeyDown={handleSearchKeyDown}
             />
             {showSearch && searchResults.length > 0 && (
-              <div className="search-results">
+              <div className="floating-results">
                 {searchResults.map(p => (
-                  <div key={p.id} className="search-result-item" onMouseDown={() => handleFocusPlot(p)}>
-                    <span>Plot #{p.number}</span>
-                    <span style={{ color: `var(--color-${p.status === 'sold' ? 'sold' : 'available'})`, fontSize: '11px' }}>
-                      {p.status.toUpperCase()}
-                    </span>
+                  <div key={p.id} className="search-item" onMouseDown={() => handleFocusPlot(p)}>
+                    <div className="search-item-main">
+                      <span className="num">#{p.number}</span>
+                      <span className="blk">Block {p.block}</span>
+                    </div>
+                    <span className={`stat ${p.status}`}>{p.status.toUpperCase()}</span>
                   </div>
                 ))}
               </div>
@@ -218,12 +195,16 @@ export default function App() {
           </div>
         </div>
 
-        <div className="bottom-tabs">
-          <button className="tab-btn" onClick={() => setGalleryOpen(true)}>
-            <GalleryIcon /> <span>GALLERY</span>
+        {/* CENTER BOTTOM: ACTION TABS */}
+        <div className="floating-tabs">
+          <button className="tab-pill" onClick={() => setGalleryOpen(true)}>
+            <GalleryIcon /> <span>Gallery</span>
           </button>
-          <button className="tab-btn" onClick={() => {}}>
-            <InfoIcon /> <span>INFO</span>
+          <button className="tab-pill" onClick={() => setSelectedPlot(allPlots[0])}>
+            <InfoIcon /> <span>Info</span>
+          </button>
+          <button className="tab-pill primary" onClick={() => setSelectedPlot(allPlots[80])}>
+            <LocateIcon /> <span>LOCATE</span>
           </button>
         </div>
       </div>

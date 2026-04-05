@@ -10,7 +10,6 @@ interface PlotMeshProps {
   isSelected: boolean;
   onSelect: (plot: PlotData) => void;
   showStatus: boolean;
-  showCategories: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -19,26 +18,15 @@ const statusColors: Record<string, string> = {
   corner: '#eab308',    // Master Prompt Yellow/Gold
 };
 
-const categoryColors: Record<string, string> = {
-  Commercial: '#3b82f6', // Bright Blue
-  Residential: '#22c55e', // Master Green
-  Premium: '#a855f7',    // Vivid Purple
-};
-
 const neutralColor = '#1e1e1e';
 const selectedColor = '#38bdf8'; // Master Prompt Sky Blue
 
-export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, showStatus, showCategories }) => {
+export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, showStatus }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
 
-  const baseColor = useMemo(() => {
-    if (showCategories) return new THREE.Color(categoryColors[data.category] || neutralColor);
-    if (showStatus) return new THREE.Color(statusColors[data.status] || neutralColor);
-    return new THREE.Color(neutralColor);
-  }, [data.status, data.category, showStatus, showCategories]);
-
+  const baseColor = useMemo(() => new THREE.Color(showStatus ? (statusColors[data.status] || '#555555') : neutralColor), [data.status, showStatus]);
   const highlightColor = useMemo(() => new THREE.Color(selectedColor), []);
   const hoveredColor = useMemo(() => new THREE.Color('#333333'), []);
 
