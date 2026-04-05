@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import './index.css';
-import type { PlotData, PlotStatus } from './types';
+import type { PlotData } from './types';
 import { allPlots } from './data/layoutData';
 import { Scene, type ViewMode } from './components/Scene';
 
@@ -38,16 +38,11 @@ export default function App() {
   const [selectedPlot, setSelectedPlot] = useState<PlotData | null>(null);
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const [statusFilters, setStatusFilters] = useState<Set<PlotStatus>>(new Set(['available', 'sold', 'reserved']));
   const [galleryOpen, setGalleryOpen] = useState(false);
-  const [activePanel, setActivePanel] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('3D');
+  const [showStatus, setShowStatus] = useState(true);
 
-  /* ── filtering ── */
-  const filteredPlots = useMemo(() =>
-    allPlots.filter(p => statusFilters.has(p.status)),
-    [statusFilters]
-  );
+  const filteredPlots = allPlots;
 
   /* ── search ── */
   const searchResults = useMemo(() => {
@@ -56,25 +51,10 @@ export default function App() {
     return allPlots.filter(p => p.number.toLowerCase().includes(q)).slice(0, 12);
   }, [search]);
 
-  /* ── status toggle ── */
-  const toggleStatus = useCallback((s: PlotStatus) => {
-    setStatusFilters(prev => {
-      const next = new Set(prev);
-      if (next.has(s)) next.delete(s); else next.add(s);
-      if (next.size === 0) next.add(s);
-      return next;
-    });
-  }, []);
+  /* ── search ── */
 
   /* ── format ── */
   const fmt = (n: number) => '₹' + (n / 1000).toFixed(0) + 'K';
-
-  /* ── counts ── */
-  const counts = useMemo(() => {
-    const c = { available: 0, sold: 0, reserved: 0 };
-    allPlots.forEach(p => c[p.status]++);
-    return c;
-  }, []);
 
   const handleFocusPlot = useCallback((plot: PlotData | null) => {
     setSelectedPlot(plot);
@@ -97,42 +77,58 @@ export default function App() {
             selectedPlot={selectedPlot}
             onSelectPlot={handleFocusPlot}
             filteredPlots={filteredPlots}
+            showStatus={showStatus}
           />
         </Canvas>
       </div>
 
-      {/* ── TOP BAR (UI OVERLAY) ── */}
+      {/* ── TOP BAR ── */}
       <div className="top-bar">
-        <div className="glass-panel logo-badge">
-          <span className="dot" />
-          PlotView 3D
+        <div className="logo-badge">
+          <div className="title">PREETHI ESTATES</div>
+          <div className="subtitle">Premium Plotting Collection</div>
         </div>
-        <button className="bottom-btn glass-panel" style={{ flexDirection: 'row', padding: '8px 16px' }}>
-          <ShareIcon /> Share
+        <button className="pill-btn" style={{ padding: '10px 18px', background: 'rgba(255,255,255,0.1)' }}>
+          <ShareIcon /> SHARE
         </button>
       </div>
 
-      {/* ── RIGHT PANEL ── */}
-      <div className="right-panel">
+      {/* ── SIDE TOGGLES (Bottom Left) ── */}
+      <div className="side-toggles">
+        <div className="toggle-item" onClick={() => setShowStatus(!showStatus)}>
+          <span>STATUS</span>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', background: showStatus ? 'var(--green)' : 'var(--text-muted)' }} />
+        </div>
+      </div>
+
+      {/* ── CAMERA CONTROLS (Bottom Right) ── */}
+      <div className="camera-controls">
+        <button className={`camera-btn ${viewMode === '2D' ? 'active' : ''}`} onClick={() => setViewMode('2D')}>2D</button>
+        <button className={`camera-btn ${viewMode === '3D' ? 'active' : ''}`} onClick={() => setViewMode('3D')}>3D</button>
+        <button className={`camera-btn ${viewMode === 'SIDE' ? 'active' : ''}`} onClick={() => setViewMode('SIDE')}>SD</button>
+        <button className="camera-btn" onClick={() => { setSelectedPlot(null); setViewMode('3D'); }}>
+          <ResetIcon />
+        </button>
+      </div>
+
+      {/* ── FLOATING SEARCH BAR (Bottom Center) ── */}
+      <div className="search-container">
         <div className="search-wrap">
           <SearchIcon />
           <input
-            className="search-input glass-panel"
-            placeholder="Search plot number..."
+            className="search-input"
+            placeholder="Search Plot Number..."
             value={search}
             onFocus={() => setShowSearch(true)}
             onChange={e => { setSearch(e.target.value); setShowSearch(true); }}
             onBlur={() => setTimeout(() => setShowSearch(false), 200)}
           />
           {showSearch && searchResults.length > 0 && (
-            <div className="search-results glass-panel">
+            <div className="search-results glass-panel" style={{ bottom: '100%', top: 'auto', marginBottom: 16 }}>
               {searchResults.map(p => (
                 <div key={p.id} className="search-item" onMouseDown={() => handleFocusPlot(p)}>
                   <span>
                     <span className="plot-num">#{p.number}</span>
-                    <span style={{ color: 'var(--text-muted)', marginLeft: 8, fontSize: 12 }}>
-                      {p.status}
-                    </span>
                   </span>
                   <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{fmt(p.price)}</span>
                 </div>
@@ -140,28 +136,11 @@ export default function App() {
             </div>
           )}
         </div>
-
-        <div className="stat-chips">
-          {(['available', 'sold', 'reserved'] as PlotStatus[]).map(s => (
-            <div
-              key={s}
-              className={`stat-chip glass-panel ${statusFilters.has(s) ? 'active' : ''}`}
-              onClick={() => toggleStatus(s)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className={`chip-dot ${s}`} />
-                <span style={{ textTransform: 'capitalize' }}>{s}</span>
-              </div>
-              <span style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono', fontSize: 11 }}>
-                {counts[s]}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* ── INFO PANEL ── */}
-      <div className={`info-panel glass-panel ${selectedPlot ? 'open' : ''}`} style={{ pointerEvents: selectedPlot ? 'auto' : 'none' }}>
+      <div className={`info-panel glass-panel ${selectedPlot ? 'open' : ''}`} 
+           style={{ pointerEvents: selectedPlot ? 'auto' : 'none', right: 24, top: 100 }}>
         {selectedPlot && (
           <>
             <div className="info-header">
@@ -172,8 +151,8 @@ export default function App() {
               <div className={`info-status-badge ${selectedPlot.status}`}>
                 <span style={{
                   width: 6, height: 6, borderRadius: '50%',
-                  background: selectedPlot.status === 'available' ? '#4ade80' :
-                    selectedPlot.status === 'sold' ? '#f87171' : '#fbbf24'
+                  background: selectedPlot.status === 'available' ? 'var(--green)' :
+                    selectedPlot.status === 'sold' ? 'var(--red)' : 'var(--yellow)'
                 }} />
                 {selectedPlot.status}
               </div>
@@ -187,61 +166,27 @@ export default function App() {
                   <div className="label">Price</div>
                   <div className="value">{fmt(selectedPlot.price)}</div>
                 </div>
-                <div className="info-cell">
-                  <div className="label">Dimensions</div>
-                  <div className="value">{(selectedPlot.width * 3).toFixed(0)}×{(selectedPlot.depth * 3).toFixed(0)} <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>m</span></div>
-                </div>
-                <div className="info-cell">
-                  <div className="label">Facing</div>
-                  <div className="value" style={{ fontSize: 13 }}>North</div>
-                </div>
               </div>
 
               <div className="info-actions">
-                <button className="info-btn primary">Book Now</button>
-                <button className="info-btn">Contact</button>
+                <button className="info-btn primary">BOOK NOW</button>
+                <button className="info-btn">CONTACT</button>
               </div>
             </div>
           </>
         )}
       </div>
 
-      {/* ── BOTTOM BAR ── */}
-      <div className="bottom-bar glass-panel">
-        <div style={{ display: 'flex', gap: 4, paddingRight: 8 }}>
-          {(['2D', '3D', 'SIDE'] as ViewMode[]).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              style={{
-                background: viewMode === mode ? 'rgba(59,130,246,0.15)' : 'transparent',
-                color: viewMode === mode ? 'var(--accent)' : 'var(--text-secondary)',
-                border: 'none', borderRadius: '4px', padding: '6px 14px', fontSize: 11, fontWeight: 600,
-                cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center'
-              }}
-            >
-              {mode}
-            </button>
-          ))}
-        </div>
-        
-        <div className="bottom-divider" style={{ margin: '0 8px' }} />
-
-        <button className={`bottom-btn ${galleryOpen ? 'active' : ''}`} onClick={() => setGalleryOpen(true)}>
-          <GalleryIcon /> Gallery
+      {/* ── MAIN NAVIGATION ── */}
+      <div className="bottom-nav">
+        <button className="pill-btn" onClick={() => setGalleryOpen(true)}>
+          <GalleryIcon /> GALLERY
         </button>
-        <button className={`bottom-btn ${activePanel === 'info' ? 'active' : ''}`}
-          onClick={() => setActivePanel(activePanel === 'info' ? null : 'info')}>
-          <InfoIcon /> Info
+        <button className="pill-btn" onClick={() => {}}>
+          <InfoIcon /> INFO
         </button>
-        <button className="bottom-btn" onClick={() => setSelectedPlot(allPlots[0])}>
-          <LocateIcon /> Locate
-        </button>
-        <button className="bottom-btn" onClick={() => {
-          setSelectedPlot(null);
-          setViewMode('3D');
-        }}>
-          <ResetIcon /> Reset
+        <button className="pill-btn" onClick={() => setSelectedPlot(allPlots[0])}>
+          <LocateIcon /> LOCATE
         </button>
       </div>
 

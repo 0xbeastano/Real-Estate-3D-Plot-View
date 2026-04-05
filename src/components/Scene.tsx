@@ -1,5 +1,4 @@
 import { Suspense, useEffect, useRef, useMemo } from 'react';
-import { useThree } from '@react-three/fiber';
 import { CameraControls } from '@react-three/drei';
 import * as THREE from 'three';
 import type { PlotData } from '../types';
@@ -16,6 +15,7 @@ interface SceneProps {
   selectedPlot: PlotData | null;
   onSelectPlot: (plot: PlotData | null) => void;
   filteredPlots: PlotData[];
+  showStatus: boolean;
 }
 
 const Ground = () => (
@@ -32,7 +32,7 @@ const EstateBorder = () => (
   </mesh>
 );
 
-export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPlot, filteredPlots }) => {
+export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPlot, filteredPlots, showStatus }) => {
   const controlsRef = useRef<CameraControls>(null);
   
   // Calculate the bounding box of the entire layout based on plot data.
@@ -139,8 +139,8 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
       <directionalLight position={[-15, 20, -10]} intensity={0.3} color="#94b8ff" />
       <hemisphereLight args={['#1a1a2e', '#0a0a0f', 0.4]} />
 
-      <color attach="background" args={['#0a0a0f']} />
-      <fog attach="fog" args={['#0a0a0f', 80, 160]} />
+      <color attach="background" args={['#000000']} />
+      <fog attach="fog" args={['#000000', 80, 200]} />
 
       <Suspense fallback={null}>
         <Ground />
@@ -157,6 +157,7 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
               data={plot}
               isSelected={selectedPlot?.id === plot.id}
               onSelect={onSelectPlot}
+              showStatus={showStatus}
             />
           );
         })}

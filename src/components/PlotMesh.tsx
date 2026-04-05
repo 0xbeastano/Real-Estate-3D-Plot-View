@@ -9,31 +9,35 @@ interface PlotMeshProps {
   data: PlotData;
   isSelected: boolean;
   onSelect: (plot: PlotData) => void;
+  showStatus: boolean;
 }
 
 const statusColors: Record<string, string> = {
-  available: '#4ade80', // Green
-  sold: '#f87171',      // Red
-  reserved: '#fbbf24',  // Yellow
+  available: '#1bb16b', // Emerald Green
+  sold: '#eb5757',      // Coral Red
+  reserved: '#f2c94c',  // Golden Yellow
 };
 
-export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect }) => {
+const neutralColor = '#2a2a2a';
+const selectedColor = '#2d9cdb'; // Sky Blue
+
+export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, showStatus }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
 
-  const baseColor = useMemo(() => new THREE.Color(statusColors[data.status] || '#d4c5a0'), [data.status]);
-  const selectedColor = useMemo(() => new THREE.Color('#5bb8f5'), []);
-  const hoveredColor = useMemo(() => new THREE.Color('#e8ddc0'), []);
+  const baseColor = useMemo(() => new THREE.Color(showStatus ? (statusColors[data.status] || '#555555') : neutralColor), [data.status, showStatus]);
+  const highlightColor = useMemo(() => new THREE.Color(selectedColor), []);
+  const hoveredColor = useMemo(() => new THREE.Color('#444444'), []);
 
-  const borderColor = isSelected ? '#ffffff' : '#555555';
-  const elevation = isSelected ? 0.35 : hovered ? 0.2 : 0.06;
+  const elevation = isSelected ? 0.6 : hovered ? 0.3 : 0.05;
 
   useFrame((_state, delta) => {
     if (!meshRef.current) return;
     const mat = meshRef.current.material as THREE.MeshStandardMaterial;
-    const target = isSelected ? selectedColor : hovered ? hoveredColor : baseColor;
+    const target = isSelected ? highlightColor : hovered ? hoveredColor : baseColor;
     mat.color.lerp(target, delta * 8);
+    mat.emissiveIntensity = isSelected ? 0.5 : hovered ? 0.2 : 0;
     meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, elevation, delta * 8);
   });
 
@@ -51,16 +55,18 @@ export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect }
       >
         <boxGeometry args={[data.width, 0.12, data.depth]} />
         <meshStandardMaterial
-          color={baseColor}
-          roughness={0.7}
-          metalness={0.05}
+          roughness={0.4}
+          metalness={0.2}
+          transparent={!showStatus}
+          opacity={showStatus ? 1 : 0.8}
+          emissive={isSelected ? selectedColor : '#000000'}
         />
       </mesh>
 
       {/* Border */}
-      <lineSegments position={[data.x + data.width / 2, elevation + 0.07, data.z + data.depth / 2]}>
+      <lineSegments position={[data.x + data.width / 2, elevation + 0.08, data.z + data.depth / 2]}>
         <edgesGeometry args={[new THREE.BoxGeometry(data.width, 0.12, data.depth)]} />
-        <lineBasicMaterial color={borderColor} transparent opacity={0.6} />
+        <lineBasicMaterial color={isSelected ? '#ffffff' : '#444444'} transparent opacity={isSelected ? 1 : 0.4} />
       </lineSegments>
 
       {/* Plot number label */}
