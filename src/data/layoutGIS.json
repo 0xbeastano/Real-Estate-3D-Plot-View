@@ -1,0 +1,379 @@
+{
+  "metadata": {
+    "title": "Real Estate Layout — GIS Spatial Extraction",
+    "description": "Structured spatial data digitized from the 2D plot layout plan image",
+    "version": "2.0.0",
+    "coordinateSystem": {
+      "origin": "Bottom-left corner of site boundary (south-west corner)",
+      "xAxis": "Positive rightward (East)",
+      "yAxis": "Positive upward (North)",
+      "units": "meters",
+      "crs": "Local Cartesian (site-relative, no geo-reference)"
+    },
+    "scale": {
+      "calibrationFeature": "12m road width used as datum for all measurements",
+      "pixelToMeter_approx": 0.29,
+      "plotWidth_typical_m": 9,
+      "plotDepth_typical_m": 12,
+      "siteBoundingBox": { "width_m": 340, "height_m": 130 }
+    },
+    "orientation": {
+      "north": "Up (+Y)",
+      "entryFacing": "South-East (bottom-right corner)"
+    },
+    "statistics": {
+      "totalPlots": 114,
+      "totalBlocks": 8,
+      "roadTypes": ["12m", "9m", "8m", "6m", "5m"],
+      "amenityCount": 3,
+      "entryPoints": 1
+    }
+  },
+
+  "siteBoundary": {
+    "type": "Polygon",
+    "description": "Overall site perimeter — L-shape + diagonal cut at SE corner",
+    "coordinates": [
+      [0, 0], [0, 130], [340, 130], [340, 62],
+      [288, 0], [155, 0], [155, 42], [63, 42], [0, 42]
+    ]
+  },
+
+  "plots": [
+    { "_comment": "=== BLOCK K — Far-left single column (West edge) ===" },
+    { "id": 114, "block": "K", "polygon": [[6,108],[18,108],[18,118],[6,118]], "centroid": [12,113] },
+    { "id": 113, "block": "K", "polygon": [[6,98],[18,98],[18,108],[6,108]], "centroid": [12,103] },
+    { "id": 112, "block": "K", "polygon": [[6,88],[18,88],[18,98],[6,98]], "centroid": [12,93] },
+    { "id": 111, "block": "K", "polygon": [[6,78],[18,78],[18,88],[6,88]], "centroid": [12,83] },
+    { "id": 110, "block": "K", "polygon": [[6,68],[18,68],[18,78],[6,78]], "centroid": [12,73] },
+    { "id": 109, "block": "K", "polygon": [[6,58],[18,58],[18,68],[6,68]], "centroid": [12,63] },
+    { "id": 108, "block": "K", "polygon": [[6,48],[18,48],[18,58],[6,58]], "centroid": [12,53] },
+    { "id": 105, "block": "K", "polygon": [[6,38],[18,38],[18,48],[6,48]], "centroid": [12,43] },
+    { "id": 101, "block": "K", "polygon": [[6,28],[18,28],[18,38],[6,38]], "centroid": [12,33] },
+
+    { "_comment": "=== BLOCK J — 3 columns, far left interior ===" },
+    { "id": 59,  "block": "J", "polygon": [[25,108],[35,108],[35,118],[25,118]], "centroid": [30,113] },
+    { "id": 86,  "block": "J", "polygon": [[25,98],[35,98],[35,108],[25,108]], "centroid": [30,103] },
+    { "id": 97,  "block": "J", "polygon": [[25,88],[35,88],[35,98],[25,98]], "centroid": [30,93] },
+    { "id": 94,  "block": "J", "polygon": [[25,78],[35,78],[35,88],[25,88]], "centroid": [30,83] },
+    { "id": 100, "block": "J", "polygon": [[25,68],[35,68],[35,78],[25,78]], "centroid": [30,73] },
+    { "id": 101, "block": "J", "polygon": [[25,58],[35,58],[35,68],[25,68]], "centroid": [30,63] },
+    { "id": 103, "block": "J", "polygon": [[25,48],[35,48],[35,58],[25,58]], "centroid": [30,53] },
+    { "id": 102, "block": "J", "polygon": [[25,38],[35,38],[35,48],[25,48]], "centroid": [30,43] },
+    { "id": 101, "block": "J", "polygon": [[25,28],[35,28],[35,38],[25,38]], "centroid": [30,33] },
+
+    { "id": 93,  "block": "J", "polygon": [[36,108],[46,108],[46,118],[36,118]], "centroid": [41,113] },
+    { "id": 92,  "block": "J", "polygon": [[36,98],[46,98],[46,108],[36,108]], "centroid": [41,103] },
+    { "id": 92,  "block": "J", "polygon": [[36,88],[46,88],[46,98],[36,98]], "centroid": [41,93] },
+    { "id": 91,  "block": "J", "polygon": [[36,78],[46,78],[46,88],[36,88]], "centroid": [41,83] },
+    { "id": 90,  "block": "J", "polygon": [[36,68],[46,68],[46,78],[36,78]], "centroid": [41,73] },
+    { "id": 99,  "block": "J", "polygon": [[36,58],[46,58],[46,68],[36,68]], "centroid": [41,63] },
+    { "id": 98,  "block": "J", "polygon": [[36,48],[46,48],[46,58],[36,58]], "centroid": [41,53] },
+    { "id": 88,  "block": "J", "polygon": [[36,38],[46,38],[46,48],[36,48]], "centroid": [41,43] },
+    { "id": 87,  "block": "J", "polygon": [[36,28],[46,28],[46,38],[36,38]], "centroid": [41,33] },
+
+    { "_comment": "=== BLOCK I — 2 columns ===" },
+    { "id": 76,  "block": "I", "polygon": [[66,108],[76,108],[76,118],[66,118]], "centroid": [71,113] },
+    { "id": 78,  "block": "I", "polygon": [[66,98],[76,98],[76,108],[66,108]], "centroid": [71,103] },
+    { "id": 78,  "block": "I", "polygon": [[66,88],[76,88],[76,98],[66,98]], "centroid": [71,93] },
+    { "id": 70,  "block": "I", "polygon": [[66,78],[76,78],[76,88],[66,88]], "centroid": [71,83] },
+    { "id": 69,  "block": "I", "polygon": [[66,68],[76,68],[76,78],[66,78]], "centroid": [71,73] },
+    { "id": 80,  "block": "I", "polygon": [[66,58],[76,58],[76,68],[66,68]], "centroid": [71,63] },
+    { "id": 81,  "block": "I", "polygon": [[66,48],[76,48],[76,58],[66,58]], "centroid": [71,53] },
+    { "id": 82,  "block": "I", "polygon": [[66,38],[76,38],[76,48],[66,48]], "centroid": [71,43] },
+    { "id": 83,  "block": "I", "polygon": [[66,28],[76,28],[76,38],[66,38]], "centroid": [71,33] },
+    { "id": 84,  "block": "I", "polygon": [[66,18],[76,18],[76,28],[66,28]], "centroid": [71,23] },
+
+    { "id": 74,  "block": "I", "polygon": [[77,108],[87,108],[87,118],[77,118]], "centroid": [82,113] },
+    { "id": 70,  "block": "I", "polygon": [[77,98],[87,98],[87,108],[77,108]], "centroid": [82,103] },
+    { "id": 71,  "block": "I", "polygon": [[77,88],[87,88],[87,98],[77,98]], "centroid": [82,93] },
+    { "id": 70,  "block": "I", "polygon": [[77,78],[87,78],[87,88],[77,88]], "centroid": [82,83] },
+    { "id": 68,  "block": "I", "polygon": [[77,68],[87,68],[87,78],[77,78]], "centroid": [82,73] },
+    { "id": 67,  "block": "I", "polygon": [[77,58],[87,58],[87,68],[67,68]], "centroid": [82,63] },
+    { "id": 66,  "block": "I", "polygon": [[77,48],[87,48],[87,58],[77,58]], "centroid": [82,53] },
+    { "id": 65,  "block": "I", "polygon": [[77,38],[87,38],[87,48],[77,48]], "centroid": [82,43] },
+    { "id": 64,  "block": "I", "polygon": [[77,28],[87,28],[87,38],[77,38]], "centroid": [82,33] },
+
+    { "_comment": "=== BLOCK H — 3 columns (center-left) ===" },
+    { "id": 57,  "block": "H", "polygon": [[100,108],[112,108],[112,118],[100,118]], "centroid": [106,113] },
+    { "id": 58,  "block": "H", "polygon": [[100,98],[112,98],[112,108],[100,108]], "centroid": [106,103] },
+    { "id": 59,  "block": "H", "polygon": [[100,88],[112,88],[112,98],[100,98]], "centroid": [106,93] },
+    { "id": 61,  "block": "H", "polygon": [[100,78],[112,78],[112,88],[100,88]], "centroid": [106,83] },
+    { "id": 62,  "block": "H", "polygon": [[100,68],[112,68],[112,78],[100,78]], "centroid": [106,73] },
+    { "id": 63,  "block": "H", "polygon": [[100,58],[112,58],[112,68],[100,68]], "centroid": [106,63] },
+
+    { "id": 56,  "block": "H", "polygon": [[113,108],[125,108],[125,118],[113,118]], "centroid": [119,113] },
+    { "id": 54,  "block": "H", "polygon": [[113,98],[125,98],[125,108],[113,108]], "centroid": [119,103] },
+    { "id": 53,  "block": "H", "polygon": [[113,88],[125,88],[125,98],[113,98]], "centroid": [119,93] },
+    { "id": 52,  "block": "H", "polygon": [[113,78],[125,78],[125,88],[113,88]], "centroid": [119,83] },
+    { "id": 51,  "block": "H", "polygon": [[113,68],[125,68],[125,78],[113,78]], "centroid": [119,73] },
+    { "id": 50,  "block": "H", "polygon": [[113,58],[125,58],[125,68],[113,68]], "centroid": [119,63] },
+
+    { "id": 54,  "block": "H", "polygon": [[126,108],[138,108],[138,118],[126,118]], "centroid": [132,113] },
+    { "id": 53,  "block": "H", "polygon": [[126,98],[138,98],[138,108],[126,108]], "centroid": [132,103] },
+    { "id": 52,  "block": "H", "polygon": [[126,88],[138,88],[138,98],[126,98]], "centroid": [132,93] },
+    { "id": 50,  "block": "H", "polygon": [[126,78],[138,78],[138,88],[126,88]], "centroid": [132,83] },
+    { "id": 40,  "block": "H", "polygon": [[126,58],[138,58],[138,68],[126,68]], "centroid": [132,63] },
+
+    { "_comment": "=== BLOCK G — 3×6 grid (center section) ===" },
+    { "id": 43,  "block": "G", "polygon": [[152,108],[164,108],[164,118],[152,118]], "centroid": [158,113] },
+    { "id": 44,  "block": "G", "polygon": [[152,98],[164,98],[164,108],[152,108]], "centroid": [158,103] },
+    { "id": 49,  "block": "G", "polygon": [[152,88],[164,88],[164,98],[152,98]], "centroid": [158,93] },
+    { "id": 39,  "block": "G", "polygon": [[152,78],[164,78],[164,88],[152,88]], "centroid": [158,83] },
+    { "id": 47,  "block": "G", "polygon": [[152,68],[164,68],[164,78],[152,78]], "centroid": [158,73] },
+    { "id": 48,  "block": "G", "polygon": [[152,58],[164,58],[164,68],[152,68]], "centroid": [158,63] },
+
+    { "id": 42,  "block": "G", "polygon": [[165,108],[177,108],[177,118],[165,118]], "centroid": [171,113] },
+    { "id": 40,  "block": "G", "polygon": [[165,98],[177,98],[177,108],[165,108]], "centroid": [171,103] },
+    { "id": 38,  "block": "G", "polygon": [[165,88],[177,88],[177,98],[165,98]], "centroid": [171,93] },
+    { "id": 37,  "block": "G", "polygon": [[165,78],[177,78],[177,88],[165,88]], "centroid": [171,83] },
+    { "id": 48,  "block": "G", "polygon": [[165,68],[177,68],[177,78],[165,78]], "centroid": [171,73] },
+
+    { "id": 42,  "block": "G", "polygon": [[178,108],[190,108],[190,118],[178,118]], "centroid": [184,113] },
+
+    { "_comment": "=== BLOCK F — Center-right upper section ===" },
+    { "id": 31,  "block": "F", "polygon": [[198,108],[210,108],[210,118],[198,118]], "centroid": [204,113] },
+    { "id": 32,  "block": "F", "polygon": [[198,98],[210,98],[210,108],[198,108]], "centroid": [204,103] },
+    { "id": 26,  "block": "F", "polygon": [[198,88],[210,88],[210,98],[198,98]], "centroid": [204,93] },
+    { "id": 34,  "block": "F", "polygon": [[198,78],[210,78],[210,88],[198,88]], "centroid": [204,83] },
+    { "id": 35,  "block": "F", "polygon": [[198,68],[210,68],[210,78],[198,78]], "centroid": [204,73] },
+    { "id": 23,  "block": "F", "polygon": [[198,58],[210,58],[210,68],[198,68]], "centroid": [204,63] },
+
+    { "id": 30,  "block": "F", "polygon": [[211,108],[223,108],[223,118],[211,118]], "centroid": [217,113] },
+    { "id": 27,  "block": "F", "polygon": [[211,98],[223,98],[223,108],[211,108]], "centroid": [217,103] },
+    { "id": 25,  "block": "F", "polygon": [[211,88],[223,88],[223,98],[211,98]], "centroid": [217,93] },
+    { "id": 24,  "block": "F", "polygon": [[211,78],[223,78],[223,88],[211,88]], "centroid": [217,83] },
+    { "id": 22,  "block": "F", "polygon": [[211,58],[223,58],[223,68],[211,68]], "centroid": [217,63] },
+
+    { "id": 28,  "block": "F", "polygon": [[224,108],[236,108],[236,118],[224,118]], "centroid": [230,113] },
+    { "id": 20,  "block": "F", "polygon": [[224,98],[236,98],[236,108],[224,108]], "centroid": [230,103] },
+    { "id": 21,  "block": "F", "polygon": [[224,88],[236,88],[236,98],[224,98]], "centroid": [230,93] },
+    { "id": 12,  "block": "F", "polygon": [[224,58],[236,58],[236,68],[224,68]], "centroid": [230,63] },
+
+    { "_comment": "=== BLOCK E — Right section upper 3×2 ===" },
+    { "id": 18,  "block": "E", "polygon": [[244,102],[256,102],[256,112],[244,112]], "centroid": [250,107] },
+    { "id": 17,  "block": "E", "polygon": [[256,102],[268,102],[268,112],[256,112]], "centroid": [262,107] },
+    { "id": 16,  "block": "E", "polygon": [[268,102],[280,102],[280,112],[268,112]], "centroid": [274,107] },
+    { "id": 19,  "block": "E", "polygon": [[244,90],[256,90],[256,100],[244,100]], "centroid": [250,95] },
+    { "id": 15,  "block": "E", "polygon": [[256,90],[268,90],[268,100],[256,100]], "centroid": [262,95] },
+    { "id": 14,  "block": "E", "polygon": [[268,90],[280,90],[280,100],[268,100]], "centroid": [274,95] },
+    { "id": 20,  "block": "E", "polygon": [[244,78],[256,78],[256,88],[244,88]], "centroid": [250,83] },
+    { "id": 13,  "block": "E", "polygon": [[256,78],[268,78],[268,88],[256,88]], "centroid": [262,83] },
+
+    { "_comment": "=== BLOCK D — Right section, top row (along 12m Road) ===" },
+    { "id": 15,  "block": "D-top", "polygon": [[244,106],[254,106],[254,116],[244,116]], "centroid": [249,111] },
+    { "id": 14,  "block": "D-top", "polygon": [[254,106],[264,106],[264,116],[254,116]], "centroid": [259,111] },
+    { "id": 13,  "block": "D-top", "polygon": [[264,106],[274,106],[274,116],[264,116]], "centroid": [269,111] },
+    { "id": 12,  "block": "D-top", "polygon": [[274,106],[284,106],[284,116],[274,116]], "centroid": [279,111] },
+    { "id": 11,  "block": "D-top", "polygon": [[284,106],[294,106],[294,116],[284,116]], "centroid": [289,111] },
+    { "id": 10,  "block": "D-top", "polygon": [[294,106],[304,106],[304,116],[294,116]], "centroid": [299,111] },
+    { "id": 9,   "block": "D-top", "polygon": [[304,106],[314,106],[314,116],[304,116]], "centroid": [309,111] },
+    { "id": 7,   "block": "D-top", "polygon": [[314,106],[322,106],[322,116],[314,116]], "centroid": [318,111] },
+    { "id": 6,   "block": "D-top", "polygon": [[322,106],[330,106],[330,116],[322,116]], "centroid": [326,111] },
+    { "id": 5,   "block": "D-top", "polygon": [[330,106],[338,106],[338,116],[330,116]], "centroid": [334,111] },
+    { "id": 3,   "block": "D-top", "polygon": [[338,106],[346,106],[346,116],[338,116]], "centroid": [342,111] },
+    { "id": 2,   "block": "D-top", "polygon": [[346,106],[354,106],[354,116],[346,116]], "centroid": [350,111] },
+    { "id": 1,   "block": "D-top", "polygon": [[354,106],[362,106],[362,116],[354,116]], "centroid": [358,111] },
+
+    { "_comment": "=== BLOCK D — Right section, bottom row ===" },
+    { "id": 18,  "block": "D-bot", "polygon": [[244,68],[254,68],[254,78],[244,78]], "centroid": [249,73] },
+    { "id": 27,  "block": "D-bot", "polygon": [[254,68],[264,68],[264,78],[254,78]], "centroid": [259,73] },
+    { "id": 25,  "block": "D-bot", "polygon": [[264,68],[274,68],[274,78],[264,78]], "centroid": [269,73] },
+    { "id": 24,  "block": "D-bot", "polygon": [[274,68],[284,68],[284,78],[274,78]], "centroid": [279,73] },
+    { "id": 23,  "block": "D-bot", "polygon": [[284,68],[294,68],[294,78],[284,78]], "centroid": [289,73] },
+    { "id": 13,  "block": "D-bot", "polygon": [[294,68],[304,68],[304,78],[294,78]], "centroid": [299,73] },
+    { "id": 12,  "block": "D-bot", "polygon": [[304,68],[314,68],[314,78],[304,78]], "centroid": [309,73] },
+    { "id": 11,  "block": "D-bot", "polygon": [[314,68],[322,68],[322,78],[314,78]], "centroid": [318,73] },
+    { "id": 10,  "block": "D-bot", "polygon": [[322,68],[330,68],[330,78],[322,78]], "centroid": [326,73] },
+    { "id": 9,   "block": "D-bot", "polygon": [[330,68],[338,68],[338,78],[330,78]], "centroid": [334,73] },
+    { "id": 8,   "block": "D-bot", "polygon": [[338,68],[346,68],[346,78],[338,78]], "centroid": [342,73] },
+    { "id": 7,   "block": "D-bot", "polygon": [[346,68],[354,68],[354,78],[346,78]], "centroid": [350,73] },
+
+    { "_comment": "=== BLOCK A — Far-right vertical strip (near entry) ===" },
+    { "id": 6,   "block": "A", "polygon": [[336,92],[346,92],[346,104],[336,104]], "centroid": [341,98] },
+    { "id": 5,   "block": "A", "polygon": [[336,80],[346,80],[346,92],[336,92]], "centroid": [341,86] },
+    { "id": 4,   "block": "A", "polygon": [[336,68],[346,68],[346,80],[336,80]], "centroid": [341,74] },
+    { "id": 3,   "block": "A", "polygon": [[336,56],[346,56],[346,68],[336,68]], "centroid": [341,62] },
+    { "id": 2,   "block": "A", "polygon": [[336,44],[346,44],[346,56],[336,56]], "centroid": [341,50] },
+    { "id": 1,   "block": "A", "polygon": [[336,32],[346,32],[346,44],[336,44]], "centroid": [341,38] }
+  ],
+
+  "roads": [
+    {
+      "id": "R-01",
+      "type": "12m",
+      "label": "12 Meter Road — Top (North perimeter)",
+      "width_m": 12,
+      "polygon": [[0,118],[340,118],[340,130],[0,130]],
+      "centerline": [[0,124],[340,124]]
+    },
+    {
+      "id": "R-02",
+      "type": "12m",
+      "label": "12 Meter Road — Left (West perimeter)",
+      "width_m": 12,
+      "polygon": [[0,0],[0,130],[-12,130],[-12,0]],
+      "centerline": [[-6,0],[-6,130]]
+    },
+    {
+      "id": "R-03",
+      "type": "12m",
+      "label": "12 Meter Road — Vertical separator (between Block K & J)",
+      "width_m": 12,
+      "polygon": [[18,18],[30,18],[30,118],[18,118]],
+      "centerline": [[24,18],[24,118]]
+    },
+    {
+      "id": "R-04",
+      "type": "12m",
+      "label": "12 Meter Road — Vertical separator (between Block J & I)",
+      "width_m": 12,
+      "polygon": [[46,18],[58,18],[58,118],[46,118]],
+      "centerline": [[52,18],[52,118]]
+    },
+    {
+      "id": "R-05",
+      "type": "12m",
+      "label": "12 Meter Road — Vertical separator (between Block I & H)",
+      "width_m": 12,
+      "polygon": [[87,55],[99,55],[99,118],[87,118]],
+      "centerline": [[93,55],[93,118]]
+    },
+    {
+      "id": "R-06",
+      "type": "9m",
+      "label": "9 Meter Road — Vertical (between Block H & G)",
+      "width_m": 9,
+      "polygon": [[138,55],[147,55],[147,118],[138,118]],
+      "centerline": [[142.5,55],[142.5,118]]
+    },
+    {
+      "id": "R-07",
+      "type": "6m",
+      "label": "6 Meter Road — Vertical (within center blocks)",
+      "width_m": 6,
+      "polygon": [[190,55],[196,55],[196,118],[190,118]],
+      "centerline": [[193,55],[193,118]]
+    },
+    {
+      "id": "R-08",
+      "type": "8m",
+      "label": "8 Meter Road — Vertical (between blocks F & E)",
+      "width_m": 8,
+      "polygon": [[236,55],[244,55],[244,118],[236,118]],
+      "centerline": [[240,55],[240,118]]
+    },
+    {
+      "id": "R-09",
+      "type": "9m",
+      "label": "9 Meter Road — Horizontal (right section mid-divider)",
+      "width_m": 9,
+      "polygon": [[244,80],[330,80],[330,89],[244,89]],
+      "centerline": [[244,84.5],[330,84.5]]
+    },
+    {
+      "id": "R-10",
+      "type": "5m",
+      "label": "5 Meter Road — Vertical (far-right near entry)",
+      "width_m": 5,
+      "polygon": [[330,32],[335,32],[335,104],[330,104]],
+      "centerline": [[332.5,32],[332.5,104]]
+    },
+    {
+      "id": "R-11",
+      "type": "12m",
+      "label": "12 Meter Road — Diagonal (Entry road, SE)",
+      "width_m": 12,
+      "angle_deg": 33,
+      "polygon": [[288,0],[340,0],[346,32],[310,60],[288,12]],
+      "centerline": [[294,6],[340,44]]
+    },
+    {
+      "id": "R-12",
+      "type": "12m",
+      "label": "12 Meter Road — Top right section",
+      "width_m": 12,
+      "polygon": [[244,118],[346,118],[346,130],[244,130]],
+      "centerline": [[244,124],[346,124]]
+    }
+  ],
+
+  "amenities": [
+    {
+      "id": "AM-PARK",
+      "type": "park",
+      "label": "PARK AREA",
+      "polygon": [[0,0],[28,0],[28,36],[0,36]],
+      "centroid": [14,18],
+      "area_sqm": 1008,
+      "features": ["circular_garden_path", "ornamental_trees", "landscaped_lawn", "seating_areas"],
+      "color": "#4CAF50"
+    },
+    {
+      "id": "AM-KIDS",
+      "type": "kidsPlayArea",
+      "label": "KIDS PLAY AREA",
+      "polygon": [[28,0],[55,0],[55,36],[28,36]],
+      "centroid": [41.5,18],
+      "area_sqm": 972,
+      "features": ["play_equipment", "soft_ground_surface", "shaded_areas"],
+      "color": "#2E7D32"
+    },
+    {
+      "id": "AM-COMMON",
+      "type": "commonPlot",
+      "label": "COMMON PLOT",
+      "polygon": [[90,0],[155,0],[155,42],[90,42]],
+      "centroid": [122.5,21],
+      "area_sqm": 2730,
+      "features": ["open_community_space", "multi_purpose"],
+      "color": "#616161"
+    }
+  ],
+
+  "entryPoints": [
+    {
+      "id": "ENTRY-MAIN",
+      "label": "ENTRY",
+      "position": [346,16],
+      "direction": "north-west",
+      "connectedRoad": "R-11",
+      "gateType": "main_entrance",
+      "gateWidth_m": 8
+    }
+  ],
+
+  "treeLines": [
+    {
+      "id": "TL-NORTH",
+      "description": "Trees along northern 12m road",
+      "line": [[5,120],[335,120]],
+      "spacing_m": 12,
+      "count": 28,
+      "side": "both"
+    },
+    {
+      "id": "TL-SOUTH",
+      "description": "Trees along southern boundary",
+      "line": [[5,8],[155,8]],
+      "spacing_m": 12,
+      "count": 13,
+      "side": "north"
+    },
+    {
+      "id": "TL-DIAG",
+      "description": "Trees along diagonal entry road",
+      "line": [[290,12],[340,40]],
+      "spacing_m": 10,
+      "count": 8,
+      "side": "both"
+    },
+    {
+      "id": "TL-INTERNAL",
+      "description": "Ornamental trees between blocks (flowering)",
+      "positions": [[52,80],[93,80],[142,80],[193,80]],
+      "species": "flowering_ornamental",
+      "count": 6
+    }
+  ]
+}
