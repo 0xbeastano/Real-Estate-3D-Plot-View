@@ -59,9 +59,13 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
     const center = new THREE.Vector3();
     layoutBox.getCenter(center);
     
-    // Smooth transition
-    controls.smoothTime = 0.4;
-    controls.draggingSmoothTime = 0.1;
+    // Cinematic Smoothness
+    controls.smoothTime = 0.8;
+    controls.draggingSmoothTime = 0.3;
+    controls.truckSpeed = 1.2;
+    controls.dollySpeed = 0.4; // Slower, smoother zoom
+    controls.azimuthRotateSpeed = 0.5;
+    controls.polarRotateSpeed = 0.5;
 
     // Base settings common to all modes unless restricted
     controls.minDistance = 5;
