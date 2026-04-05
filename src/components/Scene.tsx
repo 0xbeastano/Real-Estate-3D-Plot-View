@@ -21,7 +21,7 @@ interface SceneProps {
 const Ground = () => (
   <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, -5]} receiveShadow>
     <planeGeometry args={[160, 80]} />
-    <meshStandardMaterial color="#111111" roughness={0.8} />
+    <meshStandardMaterial color="#2c2f33" roughness={0.95} metalness={0.0} />
   </mesh>
 );
 
@@ -59,13 +59,9 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
     const center = new THREE.Vector3();
     layoutBox.getCenter(center);
     
-    // Cinematic Smoothness
-    controls.smoothTime = 0.8;
-    controls.draggingSmoothTime = 0.3;
-    controls.truckSpeed = 1.2;
-    controls.dollySpeed = 0.4; // Slower, smoother zoom
-    controls.azimuthRotateSpeed = 0.5;
-    controls.polarRotateSpeed = 0.5;
+    // Smooth transition
+    controls.smoothTime = 0.4;
+    controls.draggingSmoothTime = 0.1;
 
     // Base settings common to all modes unless restricted
     controls.minDistance = 5;
@@ -128,24 +124,23 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
       */}
       <CameraControls ref={controlsRef} makeDefault />
 
-      <ambientLight intensity={0.4} color="#ffffff" />
+      <ambientLight intensity={0.6} color="#c8d0e0" />
       <directionalLight
-        position={[15, 25, 10]}
+        position={[20, 40, 20]}
         intensity={1.2}
         castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-far={80}
-        shadow-camera-left={-25}
-        shadow-camera-right={25}
-        shadow-camera-top={25}
-        shadow-camera-bottom={-25}
-        shadow-bias={-0.0005}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-far={150}
+        shadow-camera-left={-80}
+        shadow-camera-right={80}
+        shadow-camera-top={60}
+        shadow-camera-bottom={-60}
       />
-      <directionalLight position={[-10, 10, -10]} intensity={0.3} color="#8bb5ff" />
-      <hemisphereLight args={['#1a1a2e', '#0f0f0f', 0.5]} />
+      <directionalLight position={[-15, 20, -10]} intensity={0.3} color="#94b8ff" />
+      <hemisphereLight args={['#1a1a2e', '#0a0a0f', 0.4]} />
 
-      <color attach="background" args={['#0f0f0f']} />
-      <fogExp2 attach="fog" args={['#0f0f0f', 0.035]} />
+      <color attach="background" args={['#000000']} />
+      <fog attach="fog" args={['#000000', 80, 200]} />
 
       <Suspense fallback={null}>
         <Ground />

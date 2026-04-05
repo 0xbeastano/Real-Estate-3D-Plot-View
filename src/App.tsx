@@ -39,24 +39,16 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<PlotData['category'] | 'All'>('All');
   const [viewMode, setViewMode] = useState<ViewMode>('3D');
   const [showStatus, setShowStatus] = useState(true);
 
-  const filteredPlots = useMemo(() => {
-    if (selectedCategory === 'All') return allPlots;
-    return allPlots.filter(p => p.category === selectedCategory);
-  }, [selectedCategory]);
+  const filteredPlots = allPlots;
 
   /* ── search ── */
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
     const q = search.trim().toLowerCase();
-    return allPlots.filter(p => 
-      p.number.toLowerCase().includes(q) || 
-      p.block.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q)
-    ).slice(0, 10);
+    return allPlots.filter(p => p.number.toLowerCase().includes(q)).slice(0, 12);
   }, [search]);
 
   /* ── search ── */
@@ -90,123 +82,112 @@ export default function App() {
         </Canvas>
       </div>
 
-      {/* 1. TOP BAR */}
+      {/* ── TOP BAR ── */}
       <div className="top-bar">
         <div className="logo-badge">
           <div className="title">PREETHI ESTATES</div>
           <div className="subtitle">Premium Plotting Collection</div>
         </div>
-        <button className="btn-share" onClick={() => {}}>
+        <button className="pill-btn" style={{ padding: '10px 18px', background: 'rgba(255,255,255,0.1)' }}>
           <ShareIcon /> SHARE
         </button>
       </div>
 
-      {/* 2. VIEW TOGGLE (Vertical) */}
-      <div className="view-toggle">
-        <button className={`view-btn ${viewMode === '2D' ? 'active' : ''}`} onClick={() => setViewMode('2D')}>2D</button>
-        <button className={`view-btn ${viewMode === '3D' ? 'active' : ''}`} onClick={() => setViewMode('3D')}>3D</button>
-        <button className={`view-btn ${viewMode === 'SIDE' ? 'active' : ''}`} onClick={() => setViewMode('SIDE')}>SD</button>
+      {/* ── SIDE TOGGLES (Bottom Left) ── */}
+      <div className="side-toggles">
+        <div className="toggle-item" onClick={() => setShowStatus(!showStatus)}>
+          <span>STATUS</span>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', background: showStatus ? 'var(--green)' : 'var(--text-muted)' }} />
+        </div>
       </div>
 
-      {/* RESET CAMERA */}
-      <button className="btn-reset-cam" onClick={() => { setSelectedPlot(null); setViewMode('3D'); }}>
-        <ResetIcon />
-      </button>
+      {/* ── CAMERA CONTROLS (Bottom Right) ── */}
+      <div className="camera-controls">
+        <button className={`camera-btn ${viewMode === '2D' ? 'active' : ''}`} onClick={() => setViewMode('2D')}>2D</button>
+        <button className={`camera-btn ${viewMode === '3D' ? 'active' : ''}`} onClick={() => setViewMode('3D')}>3D</button>
+        <button className={`camera-btn ${viewMode === 'SIDE' ? 'active' : ''}`} onClick={() => setViewMode('SIDE')}>SD</button>
+        <button className="camera-btn" onClick={() => { setSelectedPlot(null); setViewMode('3D'); }}>
+          <ResetIcon />
+        </button>
+      </div>
 
-      {/* 3. PLOT INFO PANEL */}
-      <div className={`info-panel ${selectedPlot ? 'open' : ''}`}>
+      {/* ── FLOATING SEARCH BAR (Bottom Center) ── */}
+      <div className="search-container">
+        <div className="search-wrap">
+          <SearchIcon />
+          <input
+            className="search-input"
+            placeholder="Search Plot Number..."
+            value={search}
+            onFocus={() => setShowSearch(true)}
+            onChange={e => { setSearch(e.target.value); setShowSearch(true); }}
+            onBlur={() => setTimeout(() => setShowSearch(false), 200)}
+          />
+          {showSearch && searchResults.length > 0 && (
+            <div className="search-results glass-panel" style={{ bottom: '100%', top: 'auto', marginBottom: 16 }}>
+              {searchResults.map(p => (
+                <div key={p.id} className="search-item" onMouseDown={() => handleFocusPlot(p)}>
+                  <span>
+                    <span className="plot-num">#{p.number}</span>
+                  </span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{fmt(p.price)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── INFO PANEL ── */}
+      <div className={`info-panel glass-panel ${selectedPlot ? 'open' : ''}`} 
+           style={{ pointerEvents: selectedPlot ? 'auto' : 'none', right: 24, top: 100 }}>
         {selectedPlot && (
           <>
             <div className="info-header">
               <h3>Plot #{selectedPlot.number}</h3>
               <button className="info-close" onClick={() => setSelectedPlot(null)}><XIcon /></button>
             </div>
-            
-            <div className={`status-badge ${selectedPlot.status}`}>
-              <span className="status-dot" />
-              {selectedPlot.status.toUpperCase()}
-            </div>
-
-            <div className="info-grid">
-              <div className="info-cell">
-                <div className="label">AREA</div>
-                <div className="value">{selectedPlot.area} <small>sq ft</small></div>
+            <div className="info-body">
+              <div className={`info-status-badge ${selectedPlot.status}`}>
+                <span style={{
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: selectedPlot.status === 'available' ? 'var(--green)' :
+                    selectedPlot.status === 'sold' ? 'var(--red)' : 'var(--yellow)'
+                }} />
+                {selectedPlot.status}
               </div>
-              <div className="info-cell">
-                <div className="label">PRICE</div>
-                <div className="value">{fmt(selectedPlot.price)}</div>
-              </div>
-            </div>
 
-            <button className="btn-book" disabled={selectedPlot.status === 'sold'}>BOOK NOW</button>
-            
-            <div className="panel-meta" style={{ marginTop: '1.5rem' }}>
-              <div className="meta-item"><span>Facing</span><span>East</span></div>
-              <div className="meta-item"><span>Dimensions</span><span>30×40 ft</span></div>
-              <div className="meta-item"><span>Road Width</span><span>12M Road</span></div>
+              <div className="info-grid">
+                <div className="info-cell">
+                  <div className="label">Area</div>
+                  <div className="value">{selectedPlot.area} <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>sq ft</span></div>
+                </div>
+                <div className="info-cell">
+                  <div className="label">Price</div>
+                  <div className="value">{fmt(selectedPlot.price)}</div>
+                </div>
+              </div>
+
+              <div className="info-actions">
+                <button className="info-btn primary">BOOK NOW</button>
+                <button className="info-btn">CONTACT</button>
+              </div>
             </div>
           </>
         )}
       </div>
 
-      {/* 4. BOTTOM CONTROLS CLUSTER */}
-      <div className="ui-controls-root">
-        {/* RIGHT CLUSTER: SEARCH & FILTER */}
-        <div className="controls-group-right">
-          <div className="filter-pill-stack">
-            <div className="filter-pill">
-              <span>Categories</span>
-              <button 
-                className={`switch-btn ${selectedCategory !== 'All' ? 'on' : ''}`}
-                onClick={() => setSelectedCategory(selectedCategory === 'All' ? 'Residential' : 'All')}
-              />
-            </div>
-            <div className="filter-pill">
-              <span>Status</span>
-              <button 
-                className={`switch-btn ${showStatus ? 'on' : ''}`}
-                onClick={() => setShowStatus(!showStatus)}
-              />
-            </div>
-          </div>
-
-          <div className="floating-search">
-            <SearchIcon />
-            <input
-              placeholder="Search Plot..."
-              value={search}
-              onFocus={() => setShowSearch(true)}
-              onChange={e => { setSearch(e.target.value); setShowSearch(true); }}
-              onBlur={() => setTimeout(() => setShowSearch(false), 200)}
-            />
-            {showSearch && searchResults.length > 0 && (
-              <div className="floating-results">
-                {searchResults.map(p => (
-                  <div key={p.id} className="search-item" onMouseDown={() => handleFocusPlot(p)}>
-                    <div className="search-item-main">
-                      <span className="num">#{p.number}</span>
-                      <span className="blk">Block {p.block}</span>
-                    </div>
-                    <span className={`stat ${p.status}`}>{p.status.toUpperCase()}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* CENTER BOTTOM: ACTION TABS */}
-        <div className="floating-tabs">
-          <button className="tab-pill" onClick={() => setGalleryOpen(true)}>
-            <GalleryIcon /> <span>Gallery</span>
-          </button>
-          <button className="tab-pill" onClick={() => setSelectedPlot(allPlots[0])}>
-            <InfoIcon /> <span>Info</span>
-          </button>
-          <button className="tab-pill primary" onClick={() => setSelectedPlot(allPlots[80])}>
-            <LocateIcon /> <span>LOCATE</span>
-          </button>
-        </div>
+      {/* ── MAIN NAVIGATION ── */}
+      <div className="bottom-nav">
+        <button className="pill-btn" onClick={() => setGalleryOpen(true)}>
+          <GalleryIcon /> GALLERY
+        </button>
+        <button className="pill-btn" onClick={() => {}}>
+          <InfoIcon /> INFO
+        </button>
+        <button className="pill-btn" onClick={() => setSelectedPlot(allPlots[0])}>
+          <LocateIcon /> LOCATE
+        </button>
       </div>
 
       {/* ── GALLERY MODAL ── */}
