@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import './index.css';
 import type { PlotData, PlotStatus } from './types';
 import { allPlots } from './data/layoutData';
-import { Scene, ViewMode } from './components/Scene';
+import { Scene, type ViewMode } from './components/Scene';
 
 /* ── icons (inline SVG) ── */
 const SearchIcon = () => (
@@ -23,6 +23,9 @@ const LocateIcon = () => (
 );
 const ResetIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+);
+const ShareIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
 );
 
 const GALLERY_IMAGES = [
@@ -104,7 +107,13 @@ export default function App() {
           <span className="dot" />
           PlotView 3D
         </div>
+        <button className="bottom-btn glass-panel" style={{ flexDirection: 'row', padding: '8px 16px' }}>
+          <ShareIcon /> Share
+        </button>
+      </div>
 
+      {/* ── RIGHT PANEL ── */}
+      <div className="right-panel">
         <div className="search-wrap">
           <SearchIcon />
           <input
@@ -139,33 +148,16 @@ export default function App() {
               className={`stat-chip glass-panel ${statusFilters.has(s) ? 'active' : ''}`}
               onClick={() => toggleStatus(s)}
             >
-              <span className={`chip-dot ${s}`} />
-              <span style={{ textTransform: 'capitalize' }}>{s}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span className={`chip-dot ${s}`} />
+                <span style={{ textTransform: 'capitalize' }}>{s}</span>
+              </div>
               <span style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono', fontSize: 11 }}>
                 {counts[s]}
               </span>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* ── STEP 3: VIEW SWITCHING ── */}
-      <div className="view-mode-controls glass-panel" 
-           style={{ position: 'absolute', top: 80, left: 16, display: 'flex', flexDirection: 'column', gap: 4, padding: 6, zIndex: 10 }}>
-        {(['2D', '3D', 'SIDE'] as ViewMode[]).map((mode) => (
-          <button
-            key={mode}
-            onClick={() => setViewMode(mode)}
-            style={{
-              background: viewMode === mode ? 'var(--accent)' : 'transparent',
-              color: viewMode === mode ? '#fff' : 'var(--text-secondary)',
-              border: 'none', borderRadius: '4px', padding: '8px 16px', fontSize: 12, fontWeight: 600,
-              cursor: 'pointer', transition: 'all 0.2s', width: '100%', textAlign: 'center'
-            }}
-          >
-            {mode}
-          </button>
-        ))}
       </div>
 
       {/* ── INFO PANEL ── */}
@@ -216,19 +208,35 @@ export default function App() {
 
       {/* ── BOTTOM BAR ── */}
       <div className="bottom-bar glass-panel">
+        <div style={{ display: 'flex', gap: 4, paddingRight: 8 }}>
+          {(['2D', '3D', 'SIDE'] as ViewMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              style={{
+                background: viewMode === mode ? 'rgba(59,130,246,0.15)' : 'transparent',
+                color: viewMode === mode ? 'var(--accent)' : 'var(--text-secondary)',
+                border: 'none', borderRadius: '4px', padding: '6px 14px', fontSize: 11, fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center'
+              }}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+        
+        <div className="bottom-divider" style={{ margin: '0 8px' }} />
+
         <button className={`bottom-btn ${galleryOpen ? 'active' : ''}`} onClick={() => setGalleryOpen(true)}>
           <GalleryIcon /> Gallery
         </button>
-        <div className="bottom-divider" />
         <button className={`bottom-btn ${activePanel === 'info' ? 'active' : ''}`}
           onClick={() => setActivePanel(activePanel === 'info' ? null : 'info')}>
           <InfoIcon /> Info
         </button>
-        <div className="bottom-divider" />
         <button className="bottom-btn" onClick={() => setSelectedPlot(allPlots[0])}>
           <LocateIcon /> Locate
         </button>
-        <div className="bottom-divider" />
         <button className="bottom-btn" onClick={() => {
           setSelectedPlot(null);
           setViewMode('3D');

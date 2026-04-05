@@ -12,9 +12,9 @@ interface PlotMeshProps {
 }
 
 const statusColors: Record<string, string> = {
-  available: '#d4c5a0',
-  sold: '#c9a882',
-  reserved: '#bfb898',
+  available: '#4ade80', // Green
+  sold: '#f87171',      // Red
+  reserved: '#fbbf24',  // Yellow
 };
 
 export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect }) => {
@@ -71,7 +71,6 @@ export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect }
         color={isSelected ? '#ffffff' : '#3a3a3a'}
         anchorX="center"
         anchorY="middle"
-        font="/fonts/Inter-Bold.woff"
         fillOpacity={0.85}
       >
         {data.number}

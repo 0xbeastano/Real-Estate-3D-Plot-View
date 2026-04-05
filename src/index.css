@@ -57,10 +57,17 @@ html, body, #root {
 /* ===== TOP BAR ===== */
 .top-bar {
   position: absolute; top: 16px; left: 16px; right: 16px;
-  display: flex; align-items: center; gap: 12px; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; z-index: 20;
   pointer-events: none;
 }
 .top-bar > * { pointer-events: auto; }
+
+.right-panel {
+  position: absolute; top: 16px; right: 16px;
+  display: flex; flex-direction: column; gap: 12px; z-index: 25;
+  pointer-events: none; align-items: flex-end;
+}
+.right-panel > * { pointer-events: auto; }
 
 .logo-badge {
   display: flex; align-items: center; gap: 8px;
@@ -98,12 +105,13 @@ html, body, #root {
 
 /* ===== STAT CHIPS (top-right) ===== */
 .stat-chips {
-  display: flex; gap: 8px; margin-left: auto;
+  display: flex; flex-direction: column; gap: 8px; align-items: stretch; width: 100%;
 }
 .stat-chip {
   display: flex; align-items: center; gap: 6px;
   padding: 8px 14px; font-size: 12px; font-weight: 500;
   cursor: pointer; transition: all var(--transition); user-select: none;
+  justify-content: space-between;
 }
 .stat-chip.active { border-color: var(--accent); background: rgba(59,130,246,0.12); }
 .stat-chip .chip-dot { width: 8px; height: 8px; border-radius: 50%; }
