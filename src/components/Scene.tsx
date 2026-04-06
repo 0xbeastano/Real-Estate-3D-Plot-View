@@ -124,7 +124,7 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
       */}
       <CameraControls ref={controlsRef} makeDefault />
 
-      <ambientLight intensity={0.4} color="#ffffff" />
+      <ambientLight intensity={0.6} color="#ffffff" />
       <directionalLight
         position={[15, 25, 10]}
         intensity={1.2}
@@ -143,7 +143,7 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
       <hemisphereLight args={['#1a1a2e', '#0f0f0f', 0.5]} />
 
       <color attach="background" args={['#0f0f0f']} />
-      <fogExp2 attach="fog" color="#0f0f0f" density={0.035} />
+      <fogExp2 attach="fog" args={['#0f0f0f', 0.015]} />
 
       <Suspense fallback={null}>
         <Ground />
