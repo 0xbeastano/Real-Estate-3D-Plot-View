@@ -14,7 +14,9 @@ import type { PlotData, RoadData, TreeData, SpecialArea } from '../types';
 //   Block E/D (right upper/lower) | 9m Rd | Block A (strip)
 // ============================================================
 
-const PLOT_STATUSES: PlotData['status'][] = ['available', 'sold', 'reserved'];
+// ============================================================
+// HELPERS
+// ============================================================
 
 function createPlot(
   num: number,
@@ -35,11 +37,14 @@ function createPlot(
   }
 
   return {
-    id: `plot-${num}`,
+    id: `num-${num}`,
     number: String(num),
     status,
     price: Math.floor(180 + (num * 3.7 % 120)) * 1000,
     area: Math.floor(width * depth * 100), // sq ft equivalent
+    facing: num % 2 === 0 ? 'East' : 'West',
+    dims: `${(width * 3).toFixed(0)} x ${(depth * 3).toFixed(0)}m`,
+    roadWidth: num < 50 ? '12m' : '9m',
     x, z, width, depth,
   };
 }
@@ -49,7 +54,6 @@ const PW = 3.0;   // standard plot width  (~9m real)
 const PD = 3.5;   // standard plot depth  (~10.5m real)
 const PWs = 2.5;  // small plot width     (~7.5m real)
 const PDs = 3.0;  // small plot depth     (~9m real)
-const G = 0.2;    // gap between plots
 
 // ============================================================
 // BLOCK K — Far-left, single column (plots 114→101,105,108,109,110,111,112,113,114)
@@ -274,8 +278,7 @@ const blockD_top: PlotData[] = [
   createPlot(2,  61.2, -17, PWs, PDs),
   createPlot(1,  63.1, -17, PWs, PDs),
 ];
-// Deduplicate IDs
-blockD_top.forEach((p, i) => { p.id = `plot-${p.number}d`; });
+// blockD_top plots already have unique numbers
 
 const blockD_bot: PlotData[] = [
   createPlot(18, 37.5, -13.5, PWs, PDs),
@@ -291,7 +294,6 @@ const blockD_bot: PlotData[] = [
   createPlot(8,  59.3, -13.5, PWs, PDs),
   createPlot(7,  61.2, -13.5, PWs, PDs),
 ];
-blockD_bot.forEach((p) => { p.id = `plot-${p.number}db`; });
 
 // ============================================================
 // BLOCK A — Far-right vertical strip (6 plots near entry)
@@ -305,7 +307,7 @@ const blockA: PlotData[] = [
   createPlot(2, 68, -5,  2.0, 2.8),
   createPlot(1, 68, -2,  2.0, 2.8),
 ];
-blockA.forEach((p) => { p.id = `plot-${p.number}a`; });
+// blockA is unique
 
 // ============================================================
 // COMBINE ALL PLOTS
@@ -370,23 +372,21 @@ function generateTreeRow(
     x: startX + i * dx,
     z: startZ + i * dz,
     scale: 0.6 + ((i * 7 + 3) % 10) * 0.04,
-    color: i % 6 === 3 ? '#c45ba0' : i % 8 === 5 ? '#9b59b6' : color,
+    color,
+    species: dx === 0 ? 'pine' : (i % 2 === 0 ? 'oak' : 'cherry'),
   }));
 }
 
 export const trees: TreeData[] = [
   // Top road tree line (north)
-  ...generateTreeRow(-52, -24, 28, 4.0, 0),
+  ...generateTreeRow(-52, -24, 28, 4.0, 0, '#c45ba0'), // Pink flowering
   // Bottom boundary tree line (south, left side)
-  ...generateTreeRow(-52,  20, 14, 4.0, 0),
+  ...generateTreeRow(-52,  20, 14, 4.0, 0, '#4ade80'),
   // Left perimeter trees
-  ...generateTreeRow(-56, -17, 7, 0, 5),
-  // Between major blocks
-  ...generateTreeRow(-47.5, -17, 7, 0, 5.5),
-  ...generateTreeRow(-35, -17, 7, 0, 5.5),
-  ...generateTreeRow(-22, -17, 7, 0, 5.5),
-  ...generateTreeRow(-5.5, -17, 6, 0, 5.5),
-  ...generateTreeRow(8, -17, 6, 0, 5.5),
+  ...generateTreeRow(-56, -17, 7, 0, 5, '#166534'),
+  // Near important road junctions
+  ...generateTreeRow(-5.5, -17, 6, 0, 5.5, '#9333ea'), // Purple flowering
+  ...generateTreeRow(8, -17, 6, 0, 5.5, '#166534'),
   // Right side trees
   ...generateTreeRow(62, -14, 5, 0, 3.5),
   // Diagonal entry road trees
