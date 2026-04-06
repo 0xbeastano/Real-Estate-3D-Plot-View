@@ -1,212 +1,308 @@
-import { useState, useMemo, useCallback } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { PLOTS, type PlotData } from './data/plotsData';
 import './index.css';
-import type { PlotData } from './types';
-import { allPlots } from './data/layoutData';
-import { Scene, type ViewMode } from './components/Scene';
 
-/* ── icons (inline SVG) ── */
-const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-);
-const XIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-);
-const GalleryIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-);
-const InfoIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-);
-const LocateIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
-);
-const ResetIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-);
-const ShareIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-);
-
-const GALLERY_IMAGES = [
-  'estate-site-gallery-img1.png', 'estate-site-gallery-img2.png',
-  'estate-site-gallery-img3.png', 'estate-site-gallery-img4.png',
-  'estate-site-gallery-img5.png', 'estate-site-gallery-img6.png',
-];
-
-export default function App() {
+const SitePlan: React.FC = () => {
   const [selectedPlot, setSelectedPlot] = useState<PlotData | null>(null);
   const [search, setSearch] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
-  const [galleryOpen, setGalleryOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('3D');
-  const [showStatus, setShowStatus] = useState(true);
+  const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 2400, h: 1000 });
+  const svgRef = useRef<SVGSVGElement>(null);
+  const isDragging = useRef(false);
+  const lastPointer = useRef<{ x: number; y: number } | null>(null);
+  const pinchDist = useRef<number | null>(null);
 
-  const filteredPlots = allPlots;
+  // Conversion helpers
+  const clientToSVG = useCallback((clientX: number, clientY: number) => {
+    if (!svgRef.current) return { x: 0, y: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    return {
+      x: viewBox.x + (clientX - rect.left) / rect.width * viewBox.w,
+      y: viewBox.y + (clientY - rect.top) / rect.height * viewBox.h,
+    };
+  }, [viewBox]);
 
-  /* ── search ── */
-  const searchResults = useMemo(() => {
-    if (!search.trim()) return [];
-    const q = search.trim().toLowerCase();
-    return allPlots.filter(p => p.number.toLowerCase().includes(q)).slice(0, 12);
-  }, [search]);
-
-  /* ── search ── */
-
-  /* ── format ── */
-  const fmt = (n: number) => '₹' + (n / 1000).toFixed(0) + 'K';
-
-  const handleFocusPlot = useCallback((plot: PlotData | null) => {
-    setSelectedPlot(plot);
-    setSearch('');
-    setShowSearch(false);
+  const clampViewBox = useCallback((vb: typeof viewBox) => {
+    return {
+      ...vb,
+      x: Math.max(-400, Math.min(2800 - vb.w, vb.x)),
+      y: Math.max(-200, Math.min(1200 - vb.h, vb.y)),
+    };
   }, []);
+
+  const handleZoom = useCallback((factor: number, cx: number, cy: number) => {
+    setViewBox((prev) => {
+      const maxZoom = 8;
+      const minZoom = 0.4;
+      const newW = Math.min(Math.max(prev.w / factor, 2400 / maxZoom), 2400 / minZoom);
+      const newH = newW * (1000 / 2400);
+      const ratio = newW / prev.w;
+      const newX = cx - (cx - prev.x) * ratio;
+      const newY = cy - (cy - prev.y) * ratio;
+      return clampViewBox({ x: newX, y: newY, w: newW, h: newH });
+    });
+  }, [clampViewBox]);
+
+  const handlePan = useCallback((dx: number, dy: number) => {
+    setViewBox((prev) => clampViewBox({ ...prev, x: prev.x - dx, y: prev.y - dy }));
+  }, [clampViewBox]);
+
+  // Event Listeners
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.15 : 0.87;
+      const c = clientToSVG(e.clientX, e.clientY);
+      handleZoom(factor, c.x, c.y);
+    };
+
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      isDragging.current = true;
+      lastPointer.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current || !lastPointer.current) return;
+      const rect = svg.getBoundingClientRect();
+      const scaleX = viewBox.w / rect.width;
+      const scaleY = viewBox.h / rect.height;
+      handlePan((e.clientX - lastPointer.current.x) * scaleX, (e.clientY - lastPointer.current.y) * scaleY);
+      lastPointer.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onMouseUp = () => {
+      isDragging.current = false;
+      lastPointer.current = null;
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        pinchDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      } else if (e.touches.length === 1) {
+        lastPointer.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchDist.current) {
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const c = clientToSVG(midX, midY);
+        handleZoom(dist / pinchDist.current, c.x, c.y);
+        pinchDist.current = dist;
+      } else if (e.touches.length === 1 && lastPointer.current) {
+        const rect = svg.getBoundingClientRect();
+        const scaleX = viewBox.w / rect.width;
+        const scaleY = viewBox.h / rect.height;
+        handlePan((e.touches[0].clientX - lastPointer.current.x) * scaleX, (e.touches[0].clientY - lastPointer.current.y) * scaleY);
+        lastPointer.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    svg.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    svg.addEventListener('touchstart', onTouchStart, { passive: true });
+    svg.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onMouseUp);
+
+    return () => {
+      svg.removeEventListener('wheel', onWheel);
+      svg.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      svg.removeEventListener('touchstart', onTouchStart);
+      svg.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onMouseUp);
+    };
+  }, [clientToSVG, handlePan, handleZoom, viewBox.h, viewBox.w]);
+
+  // Focus on plot handler
+  const focusOnPlot = useCallback((plot: PlotData) => {
+    setSelectedPlot(plot);
+    const padding = 250;
+    const targetW = plot.w + padding * 2;
+    const targetH = targetW * (1000 / 2400);
+    setViewBox(clampViewBox({
+      x: plot.x - padding,
+      y: plot.y - padding,
+      w: targetW,
+      h: targetH,
+    }));
+  }, [clampViewBox]);
+
+  const searchResults = useMemo(() => {
+    if (!search) return [];
+    return PLOTS.filter(p => p.number.includes(search)).slice(0, 5);
+  }, [search]);
 
   return (
     <div className="viewer-shell">
-      {/* ── STEP 5: CANVAS RESPONSIVENESS ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-        <Canvas
-          camera={{ position: [0, 40, 35], fov: 45 }}
-          style={{ width: '100%', height: '100%', display: 'block' }}
-          gl={{ antialias: true, logarithmicDepthBuffer: true }}
-          shadows
-        >
-          <Scene
-            viewMode={viewMode}
-            selectedPlot={selectedPlot}
-            onSelectPlot={handleFocusPlot}
-            filteredPlots={filteredPlots}
-            showStatus={showStatus}
-          />
-        </Canvas>
-      </div>
-
       {/* ── TOP BAR ── */}
-      <div className="top-bar">
-        <div className="logo-badge">
-          <div className="title">PREETHI ESTATES</div>
-          <div className="subtitle">Premium Plotting Collection</div>
+      <header className="top-bar">
+        <div className="brand">
+          PREETHI ESTATES
+          <span className="brand-sub">SITE PLAN — DTCP APPROVED</span>
         </div>
-        <button className="pill-btn" style={{ padding: '10px 18px', background: 'rgba(255,255,255,0.1)' }}>
-          <ShareIcon /> SHARE
-        </button>
-      </div>
-
-      {/* ── SIDE TOGGLES (Bottom Left) ── */}
-      <div className="side-toggles">
-        <div className="toggle-item" onClick={() => setShowStatus(!showStatus)}>
-          <span>STATUS</span>
-          <div style={{ width: 14, height: 14, borderRadius: '50%', background: showStatus ? 'var(--green)' : 'var(--text-muted)' }} />
+        <div className="header-right">
+          <button className="btn-zoom" onClick={() => handleZoom(1.5, viewBox.x + viewBox.w / 2, viewBox.y + viewBox.h / 2)}>+</button>
+          <button className="btn-zoom" onClick={() => handleZoom(0.7, viewBox.x + viewBox.w / 2, viewBox.y + viewBox.h / 2)}>−</button>
+          <button className="btn-zoom" onClick={() => setViewBox({ x: 0, y: 0, w: 2400, h: 1000 })}>⊡</button>
+          <button className="btn-share">↑ SHARE</button>
         </div>
+      </header>
+
+      {/* ── MAIN SVG DRAWING AREA ── */}
+      <div id="drawing-container">
+        <svg
+          ref={svgRef}
+          id="site-plan"
+          viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
+          preserveAspectRatio="xMidYMid meet"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <marker id="arrow-dim" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--dim-line)"/>
+            </marker>
+            <filter id="glow-selected" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          {/* GROUND */}
+          <polygon points="0,0 2400,0 2400,1000 0,1000" fill="var(--bg)"/>
+          <polygon points="80,220 2340,140 2340,820 80,960" fill="#0d0d0d" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
+
+          {/* ROADS */}
+          <g id="layer-roads">
+            <rect x="80" y="220" width="2260" height="120" fill="var(--road-12m)"/>
+            <line x1="80" y1="280" x2="2340" y2="280" stroke="var(--road-line)" strokeWidth="1.5" strokeDasharray="20,12"/>
+            <text x="800" y="275" className="road-label">12 Meter Road</text>
+            
+            <rect x="390" y="340" width="120" height="580" fill="var(--road-12m)"/>
+            <rect x="640" y="340" width="120" height="520" fill="var(--road-12m)"/>
+            <rect x="950" y="340" width="90" height="480" fill="var(--road-9m)"/>
+            <rect x="1230" y="340" width="80" height="440" fill="var(--road-8m)"/>
+            <rect x="1510" y="340" width="80" height="380" fill="var(--road-8m)"/>
+            <rect x="1780" y="340" width="90" height="280" fill="var(--road-9m)"/>
+          </g>
+
+          {/* PLOTS */}
+          <g id="layer-plots">
+            {PLOTS.map(plot => (
+              <rect
+                key={plot.id}
+                x={plot.x}
+                y={plot.y}
+                width={plot.w}
+                height={plot.h}
+                className={`plot-unit ${plot.status}`}
+                fill={selectedPlot?.id === plot.id ? 'var(--plot-selected)' : `var(--plot-${plot.status})`}
+                stroke={selectedPlot?.id === plot.id ? 'var(--plot-selected-stroke)' : `var(--plot-${plot.status}-stroke)`}
+                strokeWidth={selectedPlot?.id === plot.id ? 3 : 1.5}
+                filter={selectedPlot?.id === plot.id ? 'url(#glow-selected)' : ''}
+                onClick={() => focusOnPlot(plot)}
+                style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+              />
+            ))}
+          </g>
+
+          {/* LABELS */}
+          <g id="layer-labels">
+            {PLOTS.map(plot => (
+              <text
+                key={`label-${plot.id}`}
+                x={plot.x + plot.w/2}
+                y={plot.y + plot.h/2}
+                className="plot-number"
+                fill={selectedPlot?.id === plot.id ? '#fff' : 'rgba(255,255,255,0.7)'}
+              >
+                {plot.number}
+              </text>
+            ))}
+          </g>
+
+          {/* AMENITIES */}
+          <g id="layer-amenities">
+            <rect x="90" y="840" width="280" height="200" fill="var(--park-fill)" stroke="var(--park-stroke)" strokeWidth="1.5" rx="8"/>
+            <text x="230" y="940" className="amenity-label">PARK AREA</text>
+          </g>
+
+          {/* DIMENSIONS */}
+          <g className="dimension">
+            <line x1="82" y1="210" x2="82" y2="348" stroke="var(--dim-line)" strokeWidth="1.5" markerStart="url(#arrow-dim)" markerEnd="url(#arrow-dim)"/>
+            <text x="60" y="285" className="dim-text" transform="rotate(-90,60,285)">12.00 M</text>
+          </g>
+
+          {/* TITLE BLOCK */}
+          <g id="title-block" transform="translate(1820, 850)">
+              <rect width="420" height="70" fill="rgba(10,10,10,0.9)" stroke="rgba(255,255,255,0.1)"/>
+              <text x="210" y="30" textAnchor="middle" fill="#fff" fontWeight="800" letterSpacing="2">PREETHI ESTATES</text>
+              <text x="210" y="50" textAnchor="middle" fill="var(--text-muted)" fontSize="10">SITE PLAN — RESIDENTIAL LAYOUT</text>
+          </g>
+        </svg>
+
+        {/* PLOT INFO PANEL */}
+        <aside id="plot-panel" hidden={!selectedPlot}>
+          {selectedPlot && (
+            <>
+              <button className="panel-close" onClick={() => setSelectedPlot(null)}>×</button>
+              <div className="panel-plot-no">Plot #{selectedPlot.number}</div>
+              <div className={`status-badge ${selectedPlot.status}`}>{selectedPlot.status}</div>
+              <div className="panel-grid">
+                <div className="panel-cell"><label>AREA</label><span>{selectedPlot.area} SQ.FT</span></div>
+                <div className="panel-cell"><label>PRICE</label><span>{selectedPlot.price}</span></div>
+                <div className="panel-cell"><label>FACING</label><span>{selectedPlot.facing}</span></div>
+                <div className="panel-cell"><label>TYPE</label><span>{selectedPlot.type}</span></div>
+              </div>
+              <div className="panel-actions">
+                <button className="btn-book" disabled={selectedPlot.status === 'sold'}>BOOK NOW</button>
+                <button className="btn-contact">CONTACT</button>
+              </div>
+            </>
+          )}
+        </aside>
       </div>
 
-      {/* ── CAMERA CONTROLS (Bottom Right) ── */}
-      <div className="camera-controls">
-        <button className={`camera-btn ${viewMode === '2D' ? 'active' : ''}`} onClick={() => setViewMode('2D')}>2D</button>
-        <button className={`camera-btn ${viewMode === '3D' ? 'active' : ''}`} onClick={() => setViewMode('3D')}>3D</button>
-        <button className={`camera-btn ${viewMode === 'SIDE' ? 'active' : ''}`} onClick={() => setViewMode('SIDE')}>SD</button>
-        <button className="camera-btn" onClick={() => { setSelectedPlot(null); setViewMode('3D'); }}>
-          <ResetIcon />
-        </button>
-      </div>
-
-      {/* ── FLOATING SEARCH BAR (Bottom Center) ── */}
-      <div className="search-container">
+      {/* ── BOTTOM TOOLBAR ── */}
+      <footer className="bottom-toolbar">
+        <div className="legend">
+          <span className="leg-item"><span className="leg-dot available"></span>Available</span>
+          <span className="leg-item"><span className="leg-dot sold"></span>Sold</span>
+          <span className="leg-item"><span className="leg-dot corner"></span>Corner</span>
+        </div>
+        
         <div className="search-wrap">
-          <SearchIcon />
           <input
-            className="search-input"
-            placeholder="Search Plot Number..."
+            type="search"
+            placeholder="Search plot..."
             value={search}
-            onFocus={() => setShowSearch(true)}
-            onChange={e => { setSearch(e.target.value); setShowSearch(true); }}
-            onBlur={() => setTimeout(() => setShowSearch(false), 200)}
+            onChange={(e) => setSearch(e.target.value)}
           />
-          {showSearch && searchResults.length > 0 && (
-            <div className="search-results glass-panel" style={{ bottom: '100%', top: 'auto', marginBottom: 16 }}>
+          {searchResults.length > 0 && (
+            <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, background: '#111', padding: 8, border: '1px solid var(--border)', borderRadius: 8 }}>
               {searchResults.map(p => (
-                <div key={p.id} className="search-item" onMouseDown={() => handleFocusPlot(p)}>
-                  <span>
-                    <span className="plot-num">#{p.number}</span>
-                  </span>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{fmt(p.price)}</span>
-                </div>
+                <div key={p.id} onClick={() => { focusOnPlot(p); setSearch(''); }} style={{ padding: 8, cursor: 'pointer' }}>Plot #{p.number}</div>
               ))}
             </div>
           )}
         </div>
-      </div>
 
-      {/* ── INFO PANEL ── */}
-      <div className={`info-panel glass-panel ${selectedPlot ? 'open' : ''}`} 
-           style={{ pointerEvents: selectedPlot ? 'auto' : 'none', right: 24, top: 100 }}>
-        {selectedPlot && (
-          <>
-            <div className="info-header">
-              <h3>Plot #{selectedPlot.number}</h3>
-              <button className="info-close" onClick={() => setSelectedPlot(null)}><XIcon /></button>
-            </div>
-            <div className="info-body">
-              <div className={`info-status-badge ${selectedPlot.status}`}>
-                <span style={{
-                  width: 6, height: 6, borderRadius: '50%',
-                  background: selectedPlot.status === 'available' ? 'var(--green)' :
-                    selectedPlot.status === 'sold' ? 'var(--red)' : 'var(--yellow)'
-                }} />
-                {selectedPlot.status}
-              </div>
-
-              <div className="info-grid">
-                <div className="info-cell">
-                  <div className="label">Area</div>
-                  <div className="value">{selectedPlot.area} <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>sq ft</span></div>
-                </div>
-                <div className="info-cell">
-                  <div className="label">Price</div>
-                  <div className="value">{fmt(selectedPlot.price)}</div>
-                </div>
-              </div>
-
-              <div className="info-actions">
-                <button className="info-btn primary">BOOK NOW</button>
-                <button className="info-btn">CONTACT</button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* ── MAIN NAVIGATION ── */}
-      <div className="bottom-nav">
-        <button className="pill-btn" onClick={() => setGalleryOpen(true)}>
-          <GalleryIcon /> GALLERY
-        </button>
-        <button className="pill-btn" onClick={() => {}}>
-          <InfoIcon /> INFO
-        </button>
-        <button className="pill-btn" onClick={() => setSelectedPlot(allPlots[0])}>
-          <LocateIcon /> LOCATE
-        </button>
-      </div>
-
-      {/* ── GALLERY MODAL ── */}
-      {galleryOpen && (
-        <div className="gallery-overlay" onClick={e => { if (e.target === e.currentTarget) setGalleryOpen(false); }}>
-          <div className="gallery-container glass-panel">
-            <div className="gallery-header">
-              <h2>Site Gallery</h2>
-              <button className="info-close" onClick={() => setGalleryOpen(false)}><XIcon /></button>
-            </div>
-            <div className="gallery-grid">
-              {GALLERY_IMAGES.map((img, i) => (
-                <img key={i} className="gallery-img" src={`/${img}`} alt={`Gallery view ${i + 1}`}
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              ))}
-            </div>
-          </div>
+        <div className="tab-group">
+          <button className="tab-btn">GALLERY</button>
+          <button className="tab-btn">INFO</button>
+          <button className="tab-btn" onClick={() => setViewBox({ x: 0, y: 0, w: 2400, h: 1000 })}>LOCATE</button>
         </div>
-      )}
+      </footer>
     </div>
   );
-}
+};
+
+export default SitePlan;

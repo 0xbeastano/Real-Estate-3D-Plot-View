@@ -1,0 +1,1234 @@
+{
+  "name": "Automate outbound AI sales calls with double-dial using Airtable and Vapi AI",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### How it works\nThis workflow automates outbound lead qualification calls using **Vapi AI**. \n\n1. **Trigger:** Every 1 minute, it fetches leads from Airtable marked as 'TBC'.\n2. **Action:** It sends lead data to Vapi to initiate a voice call.\n3. **Feedback:** A Webhook receives the 'end-of-call-report' from Vapi.\n4. **Logic:** The workflow categorizes the result (Answered, Voicemail, or Failed) and updates Airtable.\n5. **Retry:** If a voicemail is detected, it schedules follow-up calls (Attempt #2 after 1 min, Attempt #3 after 24 hours).\n\n### Setup steps\n1. **Airtable:** Create a base with fields: `First Name`, `Mobile`, `Status`, `Attempt`, and `Summary`.\n2. **Vapi:** Add your `Assistant ID` and `Phone Number ID` in the HTTP Request nodes.\n3. **Credentials:** Set up Header Auth in n8n for Vapi (Name: `Authorization`, Value: `Bearer YOUR_VAPI_KEY`).",
+        "height": 480,
+        "width": 564,
+        "color": 3
+      },
+      "id": "3b30b787-7220-42e6-ae17-07d97387c1b9",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## SECTION 1: OUTBOUND SCHEDULER",
+        "height": 250,
+        "width": 1360,
+        "color": 7
+      },
+      "id": "845d5d49-1c28-4639-a4d7-6c9f803e9b5c",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        656,
+        208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## SECTION 2: RESULTS CALLBACK & RETRY LOGIC",
+        "height": 786,
+        "width": 2492,
+        "color": 7
+      },
+      "id": "d95cf475-fd9b-4d01-b738-2d40bcaf9fe1",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        16,
+        544
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "a9166e98-9a0f-4b41-b790-ce18988de0b5",
+      "name": "Schedule Every Minute",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        736,
+        272
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "filterByFormula": "({Status} ='TBC')",
+        "returnAll": false,
+        "limit": 10,
+        "options": {}
+      },
+      "id": "4e014249-c3c4-4255-bfec-4693c3d4f14f",
+      "name": "Fetch TBC Leads",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1008,
+        272
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fdc97028-eb65-45f0-9b3f-d86d7cf0e5cb",
+              "name": "ID",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "340dd9b3-9799-4997-8d2b-d445282b2ee6",
+              "name": "First Name",
+              "type": "string",
+              "value": "={{ $json[\"First Name\"] }}"
+            },
+            {
+              "id": "d453c719-f462-449c-81eb-a55c4a29db5c",
+              "name": "Mobile",
+              "type": "string",
+              "value": "={{ $json.Mobile }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e65c8812-46ec-409d-8042-2eb43f8f07eb",
+      "name": "Prepare Call Metadata",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1264,
+        272
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vapi.ai/call",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_TOKEN_HERE"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"assistantId\": \"YOUR_ASSISTANT_ID\",\n  \"customer\": {\n    \"name\": \"{{ $json['First Name'] }}\",\n    \"number\": \"{{ $json.Mobile }}\"\n  },\n  \"phoneNumberId\": \"YOUR_PHONE_ID\"\n}",
+        "options": {}
+      },
+      "id": "4ece3c3f-c51a-4504-bbdf-e1a42c0f014c",
+      "name": "POST: Trigger Vapi Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1504,
+        272
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mobile",
+              "displayName": "Mobile",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "TBC",
+                  "value": "TBC"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Called",
+                  "value": "Called"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                },
+                {
+                  "name": "Voicemail",
+                  "value": "Voicemail"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attempt",
+              "displayName": "Attempt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "recording",
+              "displayName": "recording",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transcript",
+              "displayName": "transcript",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "328d31ee-c92a-4394-b205-b0cfbc5d986a",
+      "name": "Update Lead: In Progress",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1776,
+        272
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vapi-callback",
+        "options": {}
+      },
+      "id": "fd4d836a-4d0d-45d0-b5a3-5e5b8fc61349",
+      "name": "Vapi Callback Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        112,
+        832
+      ],
+      "webhookId": "a9b8ef30-a44e-4fbe-af68-2a5820158cf7",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "8ff170bf-5983-4b42-8552-a2dec3100314",
+      "name": "Log Raw Call Data",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        512,
+        704
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0e1f06cb-e7ac-4880-bed1-7b3e45c25aa3",
+      "name": "Update: Call Connected",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1152,
+        688
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "6d5d8d17-2ea3-4f50-b424-dde404be51c4",
+      "name": "Update: Call Failed",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1328,
+        1088
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f286083b-64d6-4041-8d16-d1af57b40a9b",
+      "name": "Update: Lead Unreachable",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1856,
+        1008
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "7ea0e6b9-df66-46d2-b0d5-5a462f7c3578",
+      "name": "Log: Voicemail Attempt 3",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        2256,
+        800
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "value": "YOUR_BASE_ID"
+        },
+        "table": {
+          "value": "YOUR_TABLE_ID"
+        },
+        "columns": {
+          "value": {
+            "id": "={{ $json.id }}",
+            "Status": "Voicemail",
+            "Attempt": "#2"
+          }
+        },
+        "options": {}
+      },
+      "id": "0a3cbca1-98e8-4cb8-b2d4-8ab98b178c6b",
+      "name": "Log: Voicemail Attempt 2",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        2256,
+        576
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ $json.fields['ended reason'] }}",
+              "rightValue": "customer-did-not-answer"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cab8ea5c-517a-4e86-96fa-407541421cc2",
+      "name": "Filter: Was Answered?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        736,
+        704
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $('Is End Report?').item.json.body.message.endedReason }}",
+              "rightValue": "voicemail"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c58431eb-7407-4aa0-b526-53f85412fd06",
+      "name": "Check: Is Voicemail?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        864,
+        880
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "operator": {
+                "type": "string",
+                "operation": "notExists"
+              },
+              "leftValue": "={{ $json.Attempt }}",
+              "id": "4f451113-65b4-465f-9604-d40ba5b47887"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "452288b1-135c-4887-878c-902032ba3ffb",
+      "name": "If First Call",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1264,
+        880
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.Attempt }}",
+              "rightValue": "#1",
+              "id": "5b1c2f23-f704-43fd-93bb-d27508fe2d2a"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "50b14c6a-7c78-411e-8a75-26ac05f1e2fa",
+      "name": "If Second Call",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1440,
+        880
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.Attempt }}",
+              "rightValue": "#2"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "187f5426-2bd2-4949-9bfd-33bfdc3652ed",
+      "name": "If Third Call",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1664,
+        880
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vapi.ai/call",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n \"assistantId\": \"YOUR_ID\",\n \"customer\": {\"name\": \"{{ $json.fields['First Name'] }}\", \"number\": \"{{ $json.fields.Mobile }}\"}\n}",
+        "options": {}
+      },
+      "id": "a1093b21-61a5-4e67-b135-cc3cb2883d41",
+      "name": "Retry: Call #2",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2032,
+        576
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vapi.ai/call",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n \"assistantId\": \"YOUR_ID\",\n \"customer\": {\"name\": \"{{ $json['First Name'] }}\", \"number\": \"{{ $json.Mobile }}\"}\n}",
+        "options": {}
+      },
+      "id": "93b4a8f1-4d3e-40fd-b914-ed8717ab69a2",
+      "name": "Retry: Call #3",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2032,
+        800
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "filterByFormula": "=({Mobile} = '{{ $(\"Is End Report?\").item.json.body.message.call.customer.number }}')",
+        "options": {}
+      },
+      "id": "6e86da01-b45b-42dd-a664-d87a70627c40",
+      "name": "Get Lead ID #1",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        960,
+        688
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "filterByFormula": "=({Mobile} = '{{ $(\"Is End Report?\").item.json.body.message.call.customer.number }}')",
+        "options": {}
+      },
+      "id": "da08c9c9-2e14-47a9-a286-28971a031d49",
+      "name": "Get Lead ID #2",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1072,
+        880
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appUApeitcPOBSzn4",
+          "mode": "list",
+          "cachedResultName": "Vapi Outbound Database",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleo5FlVdCylbxzc",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appUApeitcPOBSzn4/tbleo5FlVdCylbxzc"
+        },
+        "filterByFormula": "=({Mobile} = '{{ $(\"Is End Report?\").item.json.body.message.call.customer.number }}')",
+        "options": {}
+      },
+      "id": "592d9c38-a459-476c-b7bd-3dfcc4ded570",
+      "name": "Get Lead ID #3",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1152,
+        1088
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.body.message.type }}",
+              "rightValue": "end-of-call-report"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9c52280b-4eb1-4586-a687-55e9e12e71d2",
+      "name": "Is End Report?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        304,
+        832
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "value": "YOUR_BASE_ID"
+        },
+        "table": {
+          "value": "YOUR_TABLE_ID"
+        },
+        "columns": {
+          "value": {
+            "id": "={{ $json.id }}",
+            "Status": "Voicemail",
+            "Attempt": "#1"
+          }
+        },
+        "options": {}
+      },
+      "id": "ce5ab1ee-04f1-4f25-99dd-849f34ccf046",
+      "name": "Log: Voicemail Attempt 1",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1664,
+        576
+      ],
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lUEhKPjs2og72M0a",
+          "name": "n8n-vapi-outbound"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "id": "ad49975e-4c5f-45a6-9ce0-391add0ecda9",
+      "name": "Wait: 1 Minute",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        1856,
+        576
+      ],
+      "webhookId": "191deb5c-7d5a-49f5-bca4-36fefa0768f7",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "resume": "specificTime",
+        "dateTime": "={{ $now.plus(1, \"day\").setZone(\"Australia/Sydney\").set({ hour: 16, minute: 0 }).toISO() }}"
+      },
+      "id": "5a21444a-d7ed-46a1-be00-dad945a2f694",
+      "name": "Wait: Next Day 4pm",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        1856,
+        800
+      ],
+      "webhookId": "4d1f22aa-c41f-4bc2-b803-bb34875b1cea",
+      "typeVersion": 1.1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If First Call": {
+      "main": [
+        [
+          {
+            "node": "Log: Voicemail Attempt 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If Second Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Third Call": {
+      "main": [
+        [
+          {
+            "node": "Wait: Next Day 4pm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update: Lead Unreachable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lead ID #1": {
+      "main": [
+        [
+          {
+            "node": "Update: Call Connected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lead ID #2": {
+      "main": [
+        [
+          {
+            "node": "If First Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lead ID #3": {
+      "main": [
+        [
+          {
+            "node": "Update: Call Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Second Call": {
+      "main": [
+        [
+          {
+            "node": "Log: Voicemail Attempt 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If Third Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is End Report?": {
+      "main": [
+        [
+          {
+            "node": "Log Raw Call Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry: Call #2": {
+      "main": [
+        [
+          {
+            "node": "Log: Voicemail Attempt 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry: Call #3": {
+      "main": [
+        [
+          {
+            "node": "Log: Voicemail Attempt 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait: 1 Minute": {
+      "main": [
+        [
+          {
+            "node": "Retry: Call #2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch TBC Leads": {
+      "main": [
+        [
+          {
+            "node": "Prepare Call Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Raw Call Data": {
+      "main": [
+        [
+          {
+            "node": "Filter: Was Answered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait: Next Day 4pm": {
+      "main": [
+        [
+          {
+            "node": "Retry: Call #3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Is Voicemail?": {
+      "main": [
+        [
+          {
+            "node": "Get Lead ID #2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Lead ID #3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: Was Answered?": {
+      "main": [
+        [
+          {
+            "node": "Get Lead ID #1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check: Is Voicemail?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Call Metadata": {
+      "main": [
+        [
+          {
+            "node": "POST: Trigger Vapi Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Every Minute": {
+      "main": [
+        [
+          {
+            "node": "Fetch TBC Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vapi Callback Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is End Report?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST: Trigger Vapi Call": {
+      "main": [
+        [
+          {
+            "node": "Update Lead: In Progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log: Voicemail Attempt 1": {
+      "main": [
+        [
+          {
+            "node": "Wait: 1 Minute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3ac9d899-504c-46a6-a00a-febbe4bf4288",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c6ccf5fb4bf3e422791b45a03a98b780b4cd403d856241b44a49483d0dd6f76b"
+  },
+  "id": "u70zF3jLKlok2upj",
+  "tags": []
+}
