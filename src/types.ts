@@ -6,9 +6,6 @@ export interface PlotData {
   status: PlotStatus;
   price: number;
   area: number;
-  facing?: string;
-  dims?: string;
-  roadWidth?: string;
   x: number;
   z: number;
   width: number;
@@ -31,7 +28,6 @@ export interface TreeData {
   z: number;
   scale: number;
   color: string;
-  species?: 'pine' | 'oak' | 'cherry';
 }
 
 export interface SpecialArea {

@@ -21,14 +21,14 @@ interface SceneProps {
 const Ground = () => (
   <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, -5]} receiveShadow>
     <planeGeometry args={[160, 80]} />
-    <meshStandardMaterial color="#111111" roughness={0.95} metalness={0.0} />
+    <meshStandardMaterial color="#2c2f33" roughness={0.95} metalness={0.0} />
   </mesh>
 );
 
 const EstateBorder = () => (
   <mesh position={[5, 0.005, -5]} receiveShadow>
     <boxGeometry args={[130, 0.01, 55]} />
-    <meshStandardMaterial color="#1e1e1e" roughness={0.9} />
+    <meshStandardMaterial color="#3a3d41" roughness={0.9} />
   </mesh>
 );
 
@@ -124,26 +124,23 @@ export const Scene: React.FC<SceneProps> = ({ viewMode, selectedPlot, onSelectPl
       */}
       <CameraControls ref={controlsRef} makeDefault />
 
-      <ambientLight intensity={0.6} color="#ffffff" />
+      <ambientLight intensity={0.6} color="#c8d0e0" />
       <directionalLight
-        position={[15, 25, 10]}
+        position={[20, 40, 20]}
         intensity={1.2}
-        color="#ffffff"
         castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-near={1}
-        shadow-camera-far={80}
-        shadow-camera-left={-25}
-        shadow-camera-right={25}
-        shadow-camera-top={25}
-        shadow-camera-bottom={-25}
-        shadow-bias={-0.0005}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-far={150}
+        shadow-camera-left={-80}
+        shadow-camera-right={80}
+        shadow-camera-top={60}
+        shadow-camera-bottom={-60}
       />
-      <directionalLight position={[-10, 10, -10]} intensity={0.3} color="#8bb5ff" />
-      <hemisphereLight args={['#1a1a2e', '#0f0f0f', 0.5]} />
+      <directionalLight position={[-15, 20, -10]} intensity={0.3} color="#94b8ff" />
+      <hemisphereLight args={['#1a1a2e', '#0a0a0f', 0.4]} />
 
-      <color attach="background" args={['#0f0f0f']} />
-      <fogExp2 attach="fog" args={['#0f0f0f', 0.015]} />
+      <color attach="background" args={['#000000']} />
+      <fog attach="fog" args={['#000000', 80, 200]} />
 
       <Suspense fallback={null}>
         <Ground />

@@ -13,13 +13,13 @@ interface PlotMeshProps {
 }
 
 const statusColors: Record<string, string> = {
-  available: '#22c55e', // Emerald
-  sold: '#ef4444',      // Coral
-  reserved: '#eab308',  // Golden
+  available: '#1bb16b', // Emerald Green
+  sold: '#eb5757',      // Coral Red
+  reserved: '#f2c94c',  // Golden Yellow
 };
 
-const neutralColor = '#1a1a1a';
-const selectedColor = '#3b82f6'; // Deep Blue Accent
+const neutralColor = '#2a2a2a';
+const selectedColor = '#2d9cdb'; // Sky Blue
 
 export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, showStatus }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -30,17 +30,15 @@ export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, 
   const highlightColor = useMemo(() => new THREE.Color(selectedColor), []);
   const hoveredColor = useMemo(() => new THREE.Color('#444444'), []);
 
-  const elevation = isSelected ? 0.8 : hovered ? 0.35 : 0.05;
+  const elevation = isSelected ? 0.6 : hovered ? 0.3 : 0.05;
 
   useFrame((_state, delta) => {
     if (!meshRef.current) return;
     const mat = meshRef.current.material as THREE.MeshStandardMaterial;
     const target = isSelected ? highlightColor : hovered ? hoveredColor : baseColor;
-    
-    // Smooth transitions for color and elevation
-    mat.color.lerp(target, delta * 10);
-    mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, isSelected ? 0.6 : hovered ? 0.25 : 0, delta * 10);
-    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, elevation, delta * 10);
+    mat.color.lerp(target, delta * 8);
+    mat.emissiveIntensity = isSelected ? 0.5 : hovered ? 0.2 : 0;
+    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, elevation, delta * 8);
   });
 
   return (
@@ -55,12 +53,13 @@ export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, 
         castShadow
         receiveShadow
       >
-        <boxGeometry args={[data.width, 0.14, data.depth]} />
+        <boxGeometry args={[data.width, 0.12, data.depth]} />
         <meshStandardMaterial
-          roughness={0.7}
-          metalness={0.1}
+          roughness={0.4}
+          metalness={0.2}
+          transparent={!showStatus}
+          opacity={showStatus ? 1 : 0.8}
           emissive={isSelected ? selectedColor : '#000000'}
-          emissiveIntensity={isSelected ? 0.6 : 0}
         />
       </mesh>
 
@@ -72,15 +71,13 @@ export const PlotMesh: React.FC<PlotMeshProps> = ({ data, isSelected, onSelect, 
 
       {/* Plot number label */}
       <Text
-        position={[data.x + data.width / 2, elevation + 0.16, data.z + data.depth / 2]}
+        position={[data.x + data.width / 2, elevation + 0.15, data.z + data.depth / 2]}
         rotation={[-Math.PI / 2, 0, 0]}
-        fontSize={Math.min(data.width, data.depth) * 0.34}
-        color={isSelected ? '#ffffff' : '#444444'}
-        font="https://fonts.gstatic.com/s/spacegrotesk/v15/V8mQoQDjQSkFtoMM3T6rjS3F9VMBPQ.woff2"
+        fontSize={Math.min(data.width, data.depth) * 0.32}
+        color={isSelected ? '#ffffff' : '#3a3a3a'}
         anchorX="center"
         anchorY="middle"
-        fillOpacity={0.9}
-        letterSpacing={0.02}
+        fillOpacity={0.85}
       >
         {data.number}
       </Text>
